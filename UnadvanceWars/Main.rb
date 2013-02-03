@@ -37,28 +37,32 @@ end
 
 @event_queue = EventQueue.new
 @event_queue.enable_new_style_events
+p1Units = [
+  mTank = MedTank.new(5,5,1),
+  art = Artillery.new(2,3,1),
+  tank2 = Tank.new(0,4,1),
+  inf = Infantry.new(6,7,1),
+  chop = BChopper.new(5,8,1),
+  bat = Battleship.new(3,11,1),
+  bomb = Bomber.new(3,7,1),
+  crsr = Cruiser.new(3,10,1),
+  recon1 = Recon.new(2,8,1),
+  mech1 = Mech.new(2,9,1),
+  apc = APC.new(6,8,1)
+]
 
-mTank = MedTank.new(5,5,1)
-mTank2 = MedTank.new(6,5,2)
-tank = Tank.new(1,3,2)
-art = Artillery.new(2,3,1)
-art2 = Artillery.new(0,1,2)
-art3 = Artillery.new(1,1,2)
-rocket = Rocket.new(0,2,2)
-tank2 = Tank.new(0,4,1)
-inf = Infantry.new(6,7,1)
-chop = BChopper.new(5,8,1)
-aa = AntiAir.new(1,6,2)
-bat = Battleship.new(3,11,1)
-bomb = Bomber.new(3,7,1)
-fgtr = Fighter.new(2,14,2)
-crsr = Cruiser.new(3,10,1)
-sub = Submarine.new(2,11,2)
-recon = Recon.new(3,9,2)
-mech = Mech.new(1,9,2)
-recon1 = Recon.new(2,8,1)
-mech1 = Mech.new(2,9,1)
-apc = APC.new(6,8,1)
+p2Units = [
+  mTank2 = MedTank.new(6,5,2),
+  tank = Tank.new(1,3,2),
+  art2 = Artillery.new(0,1,2),
+  art3 = Artillery.new(1,1,2),
+  rocket = Rocket.new(0,2,2),
+  aa = AntiAir.new(1,6,2),
+  fgtr = Fighter.new(2,14,2),
+  sub = Submarine.new(2,11,2),
+  recon = Recon.new(3,9,2),
+  mech = Mech.new(1,9,2),
+]
 
 player1 = Player.new("uno",1)
 player2 = Player.new("dos",2)
@@ -68,8 +72,8 @@ player2 = Player.new("dos",2)
 #player1.addUnits([tank2,tank])
 #player2.addUnits([mTank])
 
-player1.addUnits([art,mTank,tank2,inf,chop,bat,bomb,crsr, mech1, recon1, apc])
-player2.addUnits([art2,art3,mTank2,tank,rocket,aa,fgtr,sub, mech, recon])
+player1.addUnits(p1Units)
+player2.addUnits(p2Units)
 
 for u in player1.units
   @field.addWM(u)
