@@ -1,0 +1,19 @@
+--- !ruby/object:VR_ENV
+browser: firefox
+width: 800
+height: 600
+panel_pos: 360
+backup_path: E:\Ruby\myPrograms\Backups
+tab_spaces: 2
+run_command_line: ruby Main.rb
+open_files:
+- E:/Ruby/myPrograms/CoinFlip/Untitled
+open_folders:
+- E:/JAVA/workspace/UnadvanceWars
+current_file: E:/Ruby/myPrograms/CoinFlip/Untitled
+glade_path: glade-3
+font_name: Monospace 10
+rdoc_command_line: rdoc -x README
+builder: !ruby/object:Gtk::Builder {}
+glade_box: !ruby/object:VR::SimpleComboBoxEntry {}
+browser_box: !ruby/object:VR::SimpleComboBoxEntry {}
