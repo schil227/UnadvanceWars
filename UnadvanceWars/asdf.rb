@@ -46,7 +46,7 @@ class Meanie
       @timeSum = 0
       if(@stepBool)
         @image = (Surface.load "p1Artillery2.gif")
-        @image = Rubygame::Transform.rotozoom(@image,@angle,1,true)
+       # @image = Rubygame::Transform.rotozoom(@image,@angle,1,true)
       else
         @image = (Surface.load "p1Artillery1.gif")
       end

@@ -464,6 +464,10 @@ def movePath(warMachine)
           end
         elsif(event.key == :d)#261
 =begin
+          ##This is the code that used to be run for each key pressed. Thankfully
+          #its been refactored a ton and now relies mostly on the recursive
+          #method genMoveRange. This code will be left inplace as a record to
+          #what it was like. In other words, R.I.P.
           warMachine.setHasMoved()
           tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y+1]) ##Right
           if (tmpSpace == nil || (tmpSpace.occoupiedWM && tmpSpace.occoupiedWM != warMachine) || (tmpSpace.terrain.class == Mountain && (warMachine.class != Infantry && !warMachine.isFlying)) || (tmpSpace.terrain.class == Sea && (!warMachine.isFlying && !warMachine.isSailing)) || (tmpSpace.terrain.class != Sea && warMachine.isSailing))
@@ -718,7 +722,7 @@ end
 
 def genPossibleCommands(warMachine,commandList, currentPlayer)
   possibleCommands = ["xgo back"]
-  if(@field.getSpace(warMachine.getCord).tmpOccoupiedWM == warMachine) #space has 2 WMs (the already residing wm, and current wm as tmp)
+  if(@field.getSpace(warMachine.getCord).tmpOccoupiedWM) #space has 2 WMs (the already residing wm, and current wm as tmp)
     p(@field.getSpace(warMachine.getCord).occoupiedWM.class)
     p(@field.getSpace(warMachine.getCord).tmpOccoupiedWM.class)
     p("space has 2 wms")
@@ -735,8 +739,9 @@ def genPossibleCommands(warMachine,commandList, currentPlayer)
       end
     end
     if(warMachine.class == @field.getSpace(warMachine.getCord).occoupiedWM.class && warMachine.health < 10 && @field.getSpace(warMachine.getCord).occoupiedWM.health < 10)
-      possibleCommands.concat(["combine"])
+      possibleCommands.concat(["ucombine"])
     end
+
   else #space isn't occoupied by any other wm
     if(commandList.include?("attack"))
       if(!(warMachine.hasMoved && !warMachine.isDirect))
@@ -818,6 +823,54 @@ def unitAction(warMachine, currentPlayer, previousCords)
             warMachine.setHasMoved()
             unAnswered = false
           end
+          ###need to edit till rise
+        elsif(event.key == :j)
+          if(cmdList.include?("join"))
+            for space in rangeArr
+              space.toggleIsCursor()
+              @sprites.delete(space)
+            end
+            warMachine.setHasMoved()
+            unAnswered = false
+          end
+        elsif(event.key == :u)
+          if(cmdList.include?("combine"))
+            for space in rangeArr
+              space.toggleIsCursor()
+              @sprites.delete(space)
+            end
+            warMachine.setHasMoved()
+            unAnswered = false
+          end
+        elsif(event.key == :s)
+          if(cmdList.include?("supply"))
+            for space in rangeArr
+              space.toggleIsCursor()
+              @sprites.delete(space)
+            end
+            warMachine.setHasMoved()
+            unAnswered = false
+          end
+        elsif(event.key == :d)
+          if(cmdList.include?("dive"))
+            for space in rangeArr
+              space.toggleIsCursor()
+              @sprites.delete(space)
+            end
+            warMachine.setHasMoved()
+            unAnswered = false
+          end
+        elsif(event.key == :r)
+          if(cmdList.include?("rise"))
+            for space in rangeArr
+              space.toggleIsCursor()
+              @sprites.delete(space)
+            end
+            warMachine.setHasMoved()
+            unAnswered = false
+          end
+
+          ##
         elsif(event.key == :c)
           if(cmdList.include?("capture"))
             p("trying to capture")
