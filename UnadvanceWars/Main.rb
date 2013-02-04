@@ -9,6 +9,8 @@ require 'rubygame'
 
 include Rubygame
 
+#Test, setting up this repo on my laptop  
+
 file = File.open("map1.txt",'r')
 @mapx = file.read.count("\n")
 file.rewind
