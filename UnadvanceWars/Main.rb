@@ -9,8 +9,6 @@ require 'rubygame'
 
 include Rubygame
 
-#Test, setting up this repo on my laptop  
-
 file = File.open("map1.txt",'r')
 @mapx = file.read.count("\n")
 file.rewind
@@ -70,9 +68,6 @@ player1 = Player.new("uno",1)
 player2 = Player.new("dos",2)
 
 @listOfP = [player1,player2]
-
-#player1.addUnits([tank2,tank])
-#player2.addUnits([mTank])
 
 player1.addUnits(p1Units)
 player2.addUnits(p2Units)
@@ -148,26 +143,6 @@ def explosion(x,y)
   end
   @sprites.delete(explosion)
 end
-
-=begin
-def inRange(attacker, attacked) ##NULLIFIED, CHANGE TO IF COMPADABLE, NOT IN RANGE (e.x. tank v bomber)
-  listOfSpots = []
-  victimsPosition = attacked.getCord
-  attX = attacker.x
-  attY = attacker.y
-  if(attacker.isDirect)
-    if([[attX+1,attY], [attX-1,attY], [attX,attY+1], [attX,attY-1]].include?(victimsPosition))
-      attack(attacker, attacked)
-    end
-  end
-  range = genRange((attacker.attackRange), (attacker.getCord))
-  if (range.include?(victimsPosition))
-    attack(attacker, attacked)
-  else
-    p("Attacker not within range of enemy")
-  end
-end
-=end
 
 def genRange(attackRange, spot)
   x = spot.at(0)
@@ -841,7 +816,12 @@ def unitAction(warMachine, currentPlayer, previousCords)
               space.toggleIsCursor()
               @sprites.delete(space)
             end
-            warMachine.setHasMoved()
+            
+            heal(@field.getSpace(warMachine.getCord).occoupiedWM, warMachine.health)
+            warMachine.destroyed()
+            #warMachine.setHasMoved()
+            (warMachine.commander).removeUnit(warMachine)
+            @field.removeWM(warMachine)
             unAnswered = false
           end
         elsif(event.key == :s)
@@ -930,10 +910,11 @@ def update(seconds_passed)
   @screen.flip
 end
 
+#May have to augment this method when there are 'bosses', or keep it in mind
 def heal(unit, ammount)
-  if(unit.health <=8)
+  if(unit.health + ammount <= 10)
     unit.incHealth(ammount)
-  elsif(unit.health > 8)
+  else
     unit.incHealth((10 - unit.health))
   end
 end
