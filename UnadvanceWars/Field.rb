@@ -80,7 +80,11 @@ class Field
   def removeWM(warMachine)
     for space in @sfield
       if space.getCord == warMachine.getCord
-        space.removeOccoupiedWM()
+        if(space.tmpOccoupiedWM())
+           space.setTmpOccoupiedWM(nil)
+        else
+          space.removeOccoupiedWM()
+        end
       end
     end
   end
