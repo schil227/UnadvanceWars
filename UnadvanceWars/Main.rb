@@ -31,7 +31,6 @@ Sound.autoload_dirs = [ File.dirname(__FILE__) ]
 Sprites::UpdateGroup.extend_object @sprites
 
 for space in @field.sfield
-
   @sprites.concat([space.terrain])
 end
 
@@ -56,7 +55,7 @@ p2Units = [
   tank = Tank.new(1,3,2),
   art2 = Artillery.new(0,1,2),
   art3 = Artillery.new(1,1,2),
-  rocket = Rocket.new(0,2,2),
+  #rocket = Rocket.new(0,2,2),
   aa = AntiAir.new(1,6,2),
   fgtr = Fighter.new(2,14,2),
   sub = Submarine.new(2,11,2),
@@ -716,6 +715,7 @@ def genPossibleCommands(warMachine,commandList, currentPlayer)
       end
     end
     if(warMachine.class == @field.getSpace(warMachine.getCord).occoupiedWM.class && warMachine.health < 10 && @field.getSpace(warMachine.getCord).occoupiedWM.health < 10)
+      p("can combine")
       possibleCommands.concat(["ucombine"])
     end
 
@@ -811,7 +811,8 @@ def unitAction(warMachine, currentPlayer, previousCords)
             unAnswered = false
           end
         elsif(event.key == :u)
-          if(cmdList.include?("combine"))
+          
+          if(cmdList.include?("ucombine"))
             for space in rangeArr
               space.toggleIsCursor()
               @sprites.delete(space)
