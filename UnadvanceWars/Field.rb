@@ -64,7 +64,6 @@ class Field
 
   def addWM(warMachine)
     for space in @sfield
-      p(space.getCord.to_s)
       if space.getCord == warMachine.getCord
         if(space.occoupiedWM != nil)
           p("space occoupied, setting tmp")

@@ -821,6 +821,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
             warMachine.destroyed()
             #warMachine.setHasMoved()
             (warMachine.commander).removeUnit(warMachine)
+            @sprites.delete(warMachine)
             @field.removeWM(warMachine)
             unAnswered = false
           end
