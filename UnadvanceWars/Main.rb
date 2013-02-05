@@ -811,7 +811,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
             unAnswered = false
           end
         elsif(event.key == :u)
-          if(cmdList.include?("combine"))
+          if(cmdList.include?("ucombine"))
             for space in rangeArr
               space.toggleIsCursor()
               @sprites.delete(space)
