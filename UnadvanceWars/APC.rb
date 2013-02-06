@@ -72,7 +72,7 @@ class APC
     end
 
     def self.attackTable
-      {}
+      @attackTable
     end
 
     def self.commander

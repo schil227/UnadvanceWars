@@ -74,9 +74,6 @@ class Bomber
       @attackTable
     end
 
-    def self.secondaryAttackTable
-      @secondaryAttackTable
-    end
 
     def self.commander
       @commander
