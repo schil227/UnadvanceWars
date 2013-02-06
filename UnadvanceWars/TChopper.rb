@@ -76,11 +76,7 @@ class TChopper
     end
 
     def self.attackTable
-      @attackTable
-    end
-
-    def self.secondaryAttackTable
-      @secondaryAttackTable
+      {}
     end
 
     def self.commander

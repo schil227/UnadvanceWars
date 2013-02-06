@@ -1,4 +1,4 @@
-file = File.open("map1.txt",'r')
+file = File.open("data/map1.txt",'r')
 terrainArray =[]
 for line in file
   for char in line.each_char
@@ -31,7 +31,7 @@ p("(" + str[0].to_s + ")" + str[1..-1].to_s)
 boo = (1 == (1 && 1))
 p(boo.to_s)
 
-file = File.open("map1.txt",'r')
+file = File.open("data/map1.txt",'r')
 mapx = file.read.count("\n")
 file.rewind
 mapy = file.readline().size - 1
@@ -39,5 +39,12 @@ mapy = file.readline().size - 1
 p(mapx)
 p(mapy)
 
-a = true
+a = false
 p(a && b)
+
+aList = []
+if(aList.empty?)
+  p("the list is empty")
+else
+  p("empty is false")
+end

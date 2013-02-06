@@ -81,7 +81,7 @@ class Lander
     end
 
     def self.attackTable
-      @attackTable
+      {}
     end
 
     def self.commander

@@ -42,7 +42,7 @@ class APC
     @cost = 5000
     @unitCommands = ['attack','wait','supply',"deploy"]
     @convoyedUnit = nil
-    
+
     def self.convoyedUnit
       @convoyedUnit
     end
@@ -72,11 +72,7 @@ class APC
     end
 
     def self.attackTable
-      @attackTable
-    end
-
-    def self.secondaryAttackTable
-      @secondaryAttackTable
+      {}
     end
 
     def self.commander
@@ -127,21 +123,21 @@ class APC
   def hasDeployableUnits()
     return (@convoyedUnit != nil)
   end
-  
+
   def hasRoom()
     return (@convoyedUnit == nil)
   end
-  
+
   def convoy(warMachine)
     @convoyedUnit = warMachine
   end
-  
+
   def deploy()
     warMachine = @convoyedUnit
     @convoyedUnit = nil
     return warMachine
   end
-  
+
   def incHealth(num)
     @health = @health+num
     @power = 10*(@health *0.1)

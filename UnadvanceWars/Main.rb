@@ -658,6 +658,28 @@ def openAdjacentLand(warMachine)
   return false
 end
 
+def neighboringFriendlyUnits(warMachine)
+  listOfUnits = []
+  if(@field.getSpace([warMachine.x+1, warMachine.y]).occoupiedWM != nil)
+    listOfUnits.concat([@field.getSpace([warMachine.x+1, warMachine.y]).occoupiedWM])
+  end
+  if(@field.getSpace([warMachine.x-1, warMachine.y]).occoupiedWM != nil)
+    listOfUnits.concat([@field.getSpace([warMachine.x-1, warMachine.y]).occoupiedWM])
+  end
+  if(@field.getSpace([warMachine.x, warMachine.y+1]).occoupiedWM != nil)
+    listOfUnits.concat([@field.getSpace([warMachine.x, warMachine.y+1]).occoupiedWM])
+  end
+  if(@field.getSpace([warMachine.x, warMachine.y-1]).occoupiedWM != nil)
+    listOfUnits.concat([@field.getSpace([warMachine.x, warMachine.y-1]).occoupiedWM])
+  end
+  for unit in listOfUnits
+    if unit.commander != warMachine.commander
+      listOfUnits.delete(unit)
+    end
+  end
+
+end
+
 def getCommand(currentPlayer)
   unAnswered = true
   p("(s)elect unit or (e)nd turn?  (no end turn functionality yet)")
@@ -732,7 +754,9 @@ def genPossibleCommands(warMachine,commandList, currentPlayer)
       possibleCommands.concat(["wait"])
     end
     if(commandList.include?("supply"))
-      possibleCommands.concat(["supply"])
+      if(!neighboringFriendlyUnits(warMachine).empty?)
+        possibleCommands.concat(["supply"])
+      end
     end
     if(commandList.include?("capture"))
       terrain = @field.getSpace([warMachine.x, warMachine.y]).terrain
@@ -811,17 +835,17 @@ def unitAction(warMachine, currentPlayer, previousCords)
             unAnswered = false
           end
         elsif(event.key == :u)
-          
           if(cmdList.include?("ucombine"))
             for space in rangeArr
               space.toggleIsCursor()
               @sprites.delete(space)
             end
-            
+
             heal(@field.getSpace(warMachine.getCord).occoupiedWM, warMachine.health)
             warMachine.destroyed()
             #warMachine.setHasMoved()
             (warMachine.commander).removeUnit(warMachine)
+            @sprites.delete(warMachine)
             @field.removeWM(warMachine)
             unAnswered = false
           end
