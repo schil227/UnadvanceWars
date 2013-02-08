@@ -185,9 +185,17 @@ class Submarine
     if(@timeSum >= 5)
       @timeSum = 0
       if(@stepBool)
-        @image = (Surface.load(@imageName + "2.gif"))
+        if(!@submerged)
+          @image = (Surface.load(@imageName + "2.gif"))
+        else
+          @image = (Surface.load(@imageName + "4.gif"))
+        end
       else
-        @image = (Surface.load(@imageName + "1.gif"))
+        if(!@submerged)
+          @image = (Surface.load(@imageName + "1.gif"))
+        else
+          @image = (Surface.load(@imageName + "3.gif"))
+        end
       end
       @stepBool = !@stepBool
     end

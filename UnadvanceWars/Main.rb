@@ -864,6 +864,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
               space.toggleIsCursor()
               @sprites.delete(space)
             end
+            warMachine.toggleSubmerged() #will toggle it to true
             warMachine.setHasMoved()
             unAnswered = false
           end
@@ -873,6 +874,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
               space.toggleIsCursor()
               @sprites.delete(space)
             end
+            warMachine.toggleSubmerged() #will toggle it to false
             warMachine.setHasMoved()
             unAnswered = false
           end
