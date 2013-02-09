@@ -68,7 +68,11 @@ class Submarine
     end
 
     def decTurnFuel()
-      @fuel = @fuel - 1
+      if(!@submerged)
+        @fuel = @fuel - 1
+      else
+        @fuel = @fuel - 5
+      end
     end
 
     def self.ammo

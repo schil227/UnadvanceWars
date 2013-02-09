@@ -318,6 +318,7 @@ def move(warMachine, spaces) #animation, setting/unsetting spaces
 
     timeSum += seconds_passed*10
     if(timeSum > 5 && warMachine.fuel > 0)
+      ####Fuel is currently broken, as the path is not built (and it decrements based on distance)
       warMachine.decFuel(1)
       timeSum = 0
       x = spaceArr.pop
