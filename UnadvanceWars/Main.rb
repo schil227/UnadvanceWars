@@ -170,6 +170,22 @@ def genRange(attackRange, spot)
   return listOfSpaces
 end
 
+def isSusceptibleToAttack(attacker, defender)
+  #SubmarineCase
+  #ruby is lazy, therefore the defender.submerged call will not be evaluated until it is confirmed that the class is Submarine
+  if (defender.class == Submarine )
+    p("is sub")
+    if(attacker.class != Cruiser && attacker.class != Submarine)
+      p("attacker is not cruiser or submarine")
+      if( defender.submerged)
+        p("sub is submerged")
+        return false
+      end
+    end
+  end
+  return true
+end
+
 def attackableWarMachines(arr,currentPlayer, warMachine) #array of Cords
   p(warMachine.class)
   wMarr=[]
@@ -177,10 +193,10 @@ def attackableWarMachines(arr,currentPlayer, warMachine) #array of Cords
   for currentSpace in arr
     if (currentSpace.occoupiedWM)
       if(!currentPlayer.isUnit(currentSpace.occoupiedWM))
-        if(warMachine.attackTable[currentSpace.occoupiedWM.symb] != nil)
+        if((warMachine.attackTable[currentSpace.occoupiedWM.symb] != nil) && isSusceptibleToAttack(warMachine, currentSpace.occoupiedWM))
           wMarr.concat([currentSpace.occoupiedWM])
         elsif(defined?(warMachine.secondaryAttackTable))
-          if(warMachine.secondaryAttackTable[currentSpace.occoupiedWM.symb] != nil)
+          if((warMachine.secondaryAttackTable[currentSpace.occoupiedWM.symb] != nil) && isSusceptibleToAttack(warMachine, currentSpace.occoupiedWM))
             wMarr.concat([currentSpace.occoupiedWM])
           end
         end
@@ -268,21 +284,9 @@ def genSpaceMovement(space, mvmt, spaceArr, warMachine)
   spaceArr.concat([space])
 
   nSpace = @field.getSpace([space.x-1, space.y])
-  if(nSpace)
-    p("north space " + nSpace.getCord.to_s)
-  end
   sSpace = @field.getSpace([space.x+1, space.y])
-  if(sSpace)
-    p("south space " + sSpace.getCord.to_s)
-  end
   eSpace = @field.getSpace([space.x, space.y+1])
-  if(eSpace)
-    p("east space " + eSpace.getCord.to_s)
-  end
   wSpace = @field.getSpace([space.x, space.y-1])
-  if(wSpace)
-    p("west space " + wSpace.getCord.to_s)
-  end
 
   #(space.occoupiedWM && space.occoupiedWM != warMachine)
   #&& !space.occoupiedWM
@@ -290,7 +294,6 @@ def genSpaceMovement(space, mvmt, spaceArr, warMachine)
   tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
   for space in tmpSpaceArr
     if(space != nil && mvmt > 0)
-      p(space.movement.to_s + " compared to " + mvmt.to_s)
       if((space.movement <= mvmt ||(warMachine.isFlying && 1 <= mvmt)) && mvmt > space.spaceMvmt && \
       !( (space.occoupiedWM && (space.occoupiedWM.commander != warMachine.commander)) \
       || (space.terrain.class == Mountain && (warMachine.class != (Infantry || Mech) && !warMachine.isFlying)) \
@@ -303,7 +306,6 @@ def genSpaceMovement(space, mvmt, spaceArr, warMachine)
           spaceArr.concat(genSpaceMovement(space, mvmt - space.movement, spaceArr, warMachine))
         end
       end
-      p("movement = " + mvmt.to_s)
     end
   end
   return spaceArr.uniq()
@@ -344,7 +346,6 @@ def calcMovementReturn(spaceArr, space, warMachine)
   i = spaceArr.size()-1
   spaceArr.reverse()
   until spaceArr.at(i) == space
-    p("oh god")
     if(!warMachine.isFlying)
       sum += spaceArr.at(i).movement
     else
@@ -389,7 +390,6 @@ def movePath(warMachine)
 
   tmpArr = genMoveRange(warMachine)
   for space in tmpArr
-    p(space.getCord)
     space.toggleIsCursor()
     @sprites << space
   end
@@ -413,7 +413,6 @@ def movePath(warMachine)
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
             currentSpace = tmpSpace
-            p(currentSpace.getCord)
             currentSpace.toggleIsCursor()
             @sprites << currentSpace
           end
@@ -424,7 +423,6 @@ def movePath(warMachine)
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
             currentSpace = tmpSpace
-            p(currentSpace.getCord)
             currentSpace.toggleIsCursor()
             @sprites << currentSpace
           end
@@ -435,7 +433,6 @@ def movePath(warMachine)
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
             currentSpace = tmpSpace
-            p(currentSpace.getCord)
             currentSpace.toggleIsCursor()
             @sprites << currentSpace
           end
@@ -496,7 +493,6 @@ def movePath(warMachine)
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
             currentSpace = tmpSpace
-            p(currentSpace.getCord)
             currentSpace.toggleIsCursor()
             @sprites << currentSpace
           end
@@ -519,7 +515,6 @@ def movePath(warMachine)
 
   end
 
-  p(spaceArr.size().to_s)
   for space in tmpArr
     space.setIsCursorFalse()
     @sprites.delete(space)
@@ -555,8 +550,6 @@ end
 def selectUnit(currentPlayer)
   x=(@mapx/2)
   y=(@mapy/2)
-  p(x)
-  p(y)
   currentSpace = @field.getSpace([y,x]) #was 0,0
   tmpSpace = nil
   spotSelected = false
@@ -1059,10 +1052,6 @@ p("Artillery")
 p(art.health)
 p(art.power)
 
-for i in 0..50
-  timeStep()
-  p(i)
-end
 =end
 
 puts ("move the tank!")
@@ -1072,3 +1061,5 @@ puts ("move the tank!")
 #tmpField(genRange([2,3],[5,5]))
 
 main()
+
+

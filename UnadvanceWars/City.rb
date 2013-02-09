@@ -56,7 +56,7 @@ class City
 
   def setOccoupiedPlayer(commander)
     @occoupiedPlayer = commander
-    @image = (Surface.load("p"+commander.playerNum.to_s+"city.gif"))
+    @image = (Surface.load("data/p"+commander.playerNum.to_s+"city.gif"))
   end
 
   def update  seconds_passed

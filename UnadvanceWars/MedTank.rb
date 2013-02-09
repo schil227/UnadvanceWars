@@ -37,7 +37,7 @@ class MedTank
     @commander = nil
     @attackTable = {'r' => 1.05, 't' => 0.85, 'M' => 0.55, 'p' => 1.05,'a' => 1.05, 'R' => 1.05, 'A' => 1.05, 's' => 1.05, 'L' => 0.35, 'C' => 0.55, 'S' => 0.10, 'B' => 0.10 }
     @secondaryAttackTable = {'i' => 1.05, 'm' => 0.95, 'r' => 0.45, 't' => 0.08, 'M' => 0.01, 'p' => 0.45, 'a' => 0.45, 'R' => 0.55, 'A' => 0.07, 's' => 0.35, 'b'=> 0.12, 'T' => 0.45}
-    @ammo = 1
+    @ammo = 5
     @fuel = 50
     @isFlying = false
     @isSailing = false
