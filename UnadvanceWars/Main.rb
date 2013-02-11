@@ -173,15 +173,8 @@ end
 def isSusceptibleToAttack(attacker, defender)
   #SubmarineCase
   #ruby is lazy, therefore the defender.submerged call will not be evaluated until it is confirmed that the class is Submarine
-  if (defender.class == Submarine )
-    p("is sub")
-    if(attacker.class != Cruiser && attacker.class != Submarine)
-      p("attacker is not cruiser or submarine")
-      if( defender.submerged)
-        p("sub is submerged")
-        return false
-      end
-    end
+  if (defender.class == Submarine && attacker.class != Cruiser && attacker.class != Submarine && defender.submerged)
+    return false
   end
   return true
 end
@@ -1061,5 +1054,4 @@ puts ("move the tank!")
 #tmpField(genRange([2,3],[5,5]))
 
 main()
-
 
