@@ -124,6 +124,10 @@ class TChopper
     end
   end
 
+  def convoyedUnits()
+    return [@convoyedUnit]
+  end
+
   def hasDeployableUnits()
     return (@convoyedUnit != nil)
   end

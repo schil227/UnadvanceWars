@@ -129,6 +129,10 @@ class Lander
     end
   end
 
+  def convoyedUnits()
+    return [@convoyedUnit, @convoyedUnit2]
+  end
+
   def hasDeployableUnits()
     return (@convoyedUnit != nil || @convoyedUnit2 != nil)
   end
@@ -137,10 +141,17 @@ class Lander
     return (@convoyedUnit == nil || @convoyedUnit2 == nil)
   end
 
+  #it is implied that this option will be unavailable if there is no room, 
+  #if one is closed then the other is open, and vise virsa
   def convoy(warMachine)
-    @convoyedUnit = warMachine
+    if(!@convoyedUnit)
+      @convoyedUnit = warMachine
+    else
+      @convoyedUnit2 = warMachine
+    end
   end
 
+  #need to update functionality for multiple WMS
   def deploy()
     warMachine = @convoyedUnit
     @convoyedUnit = nil

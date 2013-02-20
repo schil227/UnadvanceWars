@@ -757,7 +757,7 @@ def genPossibleCommands(warMachine,commandList, currentPlayer)
       if(warMachine.submerged)
         possibleCommands.concat(["rise"])
       else
-        possibleCommands.concat(["dive"])
+        possibleCommands.concat(["rdive"])
       end
     end
     if(commandList.include?("deploy"))
@@ -819,6 +819,21 @@ def unitAction(warMachine, currentPlayer, previousCords)
               @sprites.delete(space)
             end
             warMachine.setHasMoved()
+            @field.getSpace(warMachine.getCord).occoupiedWM.convoy(warMachine)
+            @sprites.delete(warMachine)
+            @field.removeWM(warMachine)
+            unAnswered = false
+          end
+        elsif(event.key == :d)
+          if(cmdList.include?("deploy"))
+            #tmpWarMachine = warMachine.deploy()
+            #UPDATE MOVEMENT
+            #@field.addWM(tmpWarMachine)
+            for space in rangeArr
+              space.toggleIsCursor()
+              @sprites.delete(space)
+            end
+            warMachine.setHasMoved()
             unAnswered = false
           end
         elsif(event.key == :u)
@@ -845,8 +860,8 @@ def unitAction(warMachine, currentPlayer, previousCords)
             warMachine.setHasMoved()
             unAnswered = false
           end
-        elsif(event.key == :d)
-          if(cmdList.include?("dive"))
+        elsif(event.key == :r)
+          if(cmdList.include?("rdive"))
             for space in rangeArr
               space.toggleIsCursor()
               @sprites.delete(space)
@@ -907,8 +922,17 @@ def nextPlayerPosition(x) #returns the position of the next person in the listOf
 end
 
 def setUnitsUnmoved(currentPlayer)
-  for n in currentPlayer.units
-    n.setUnmoved()
+  unitsSetToMoved = []
+  for unit in currentPlayer.units
+    if(unit.unitCommands.include?("deploy") && unit.hasDeployableUnits())
+      unitsSetToMoved.concat(unit.convoyedUnits)
+    end
+    unit.setUnmoved()
+  end
+  #this is done because ending turn may require all units to be set to moved, so convoyed units
+  #could be an issue if registered as unmoved
+  for unit in unitsSetToMoved
+    unit.setHasMoved()
   end
 end
 

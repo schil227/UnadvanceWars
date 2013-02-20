@@ -43,6 +43,8 @@ class APC
     @unitCommands = ['attack','wait','supply',"deploy"]
     @convoyedUnit = nil
 
+    
+    
     def self.convoyedUnit
       @convoyedUnit
     end
@@ -118,6 +120,10 @@ class APC
     def self.isDestroyed
       @isDestroyed
     end
+  end
+  
+  def convoyedUnits()
+    return [@convoyedUnit]
   end
 
   def hasDeployableUnits()
