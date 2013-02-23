@@ -130,7 +130,8 @@ class Lander
   end
 
   def convoyedUnits()
-    return [@convoyedUnit, @convoyedUnit2]
+    #jeeze, I should incorporate more blocks in my code like this. Lambda calc rocks!
+    return [@convoyedUnit, @convoyedUnit2].delete_if{|x| x == nil}
   end
 
   def hasDeployableUnits()

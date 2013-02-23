@@ -91,24 +91,39 @@ def attack(attacker, attacked,currentPlayer)
     attacker.decHealth(calcDamage(attacked,attacker))
   elsif(attacked.health < 1)
     p("Defending " + attacked.class.to_s + " was destroyed!")
-    @sprites.delete(attacked)
-    attacked.destroyed()
-    explosion(attacked.y, attacked.x)
-    (attacked.commander).removeUnit(attacked)
-    @field.removeWM(attacked)
+    destroy(attacked)
   end
   if(attacker.health < 1) #destroyed in counter attack
     p("Attacking " + attacker.class.to_s + " was destroyed!")
-    @sprites.delete(attacker)
-    attacker.destroyed()
-    explosion(attacker.y, attacker.x)
-    currentPlayer.removeUnit(attacker)
-    @field.removeWM(attacker)
+    destroy(attacker)
   end
   p("After attack:")
   p("Attaking " + attacker.class.to_s + " health: " + (attacker.health).to_s)
   p("Defending " + attacked.class.to_s + " health: " + (attacked.health).to_s)
 
+end
+
+def destroy(warMachine)
+  @sprites.delete(warMachine)
+  if(warMachine.commandList.include?("deploy") && warMachine.hasDeployableUnits)
+    for unit in warMachine.convoyedUnits
+     destoryOffScreenUnit(unit)
+    end
+  end
+  warMachine.destroyed()
+  explosion(warMachine.y, warMachine.x)
+  currentPlayer.removeUnit(warMachine)
+  @field.removeWM(warMachine)
+end
+
+def destoryOffScreenUnit(warMachine)
+    if(warMachine.commandList.include?("deploy") && warMachine.hasDeployableUnits)
+      for unit in warMachine.convoyedUnits
+       destoryOffScreenUnit(unit)
+      end
+    end
+    warMachine.destroyed()
+    currentPlayer.removeUnit(warMachine)
 end
 
 def calcDamage(attacker, attacked)

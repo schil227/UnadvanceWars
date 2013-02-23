@@ -125,7 +125,7 @@ class TChopper
   end
 
   def convoyedUnits()
-    return [@convoyedUnit]
+    return [@convoyedUnit].delete_if{|x| x == nil}
   end
 
   def hasDeployableUnits()

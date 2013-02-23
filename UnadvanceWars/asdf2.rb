@@ -48,3 +48,6 @@ if(aList.empty?)
 else
   p("empty is false")
 end
+
+p("new tests")
+p(nil && a)
