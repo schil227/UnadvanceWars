@@ -56,6 +56,8 @@ class Field
         space.setTerrainValues(Mountain.new(space))
       when ("5")
         space.setTerrainValues(Sea.new(space))
+      when ("6")
+        space.setTerrainValues(Shoal.new(space))
       end
       x+=1
 
@@ -80,7 +82,7 @@ class Field
     for space in @sfield
       if space.getCord == warMachine.getCord
         if(space.tmpOccoupiedWM())
-           space.setTmpOccoupiedWM(nil)
+          space.setTmpOccoupiedWM(nil)
         else
           space.removeOccoupiedWM()
         end

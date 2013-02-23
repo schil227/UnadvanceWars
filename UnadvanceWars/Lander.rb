@@ -25,7 +25,7 @@ class Lander
 
     @health = 10
     @power = 10*(@health * 0.1)
-    @attackRange = [2,6]
+    @attackRange = [-1,1]
     @movement = 6
     @symb = 'L'
     @x = x

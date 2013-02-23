@@ -37,25 +37,26 @@ end
 @event_queue = EventQueue.new
 @event_queue.enable_new_style_events
 p1Units = [
-#  mTank = MedTank.new(5,5,1),
-#  art = Artillery.new(2,3,1),
-#  tank2 = Tank.new(0,4,1),
+  mTank = MedTank.new(5,5,1),
+  art = Artillery.new(2,3,1),
+  tank2 = Tank.new(0,4,1),
   inf = Infantry.new(6,7,1),
-#  chop = BChopper.new(5,8,1),
-#  bat = Battleship.new(3,11,1),
-#  bomb = Bomber.new(3,7,1),
-#  crsr = Cruiser.new(3,10,1),
-#  recon1 = Recon.new(2,8,1),
-#  mech1 = Mech.new(2,9,1),
+  chop = BChopper.new(5,8,1),
+  bat = Battleship.new(3,11,1),
+  bomb = Bomber.new(3,7,1),
+  crsr = Cruiser.new(3,10,1),
+  recon1 = Recon.new(2,8,1),
+  mech1 = Mech.new(2,9,1),
   apc = APC.new(6,8,1)
 ]
 
 p2Units = [
+  lan = Lander.new(1,11,2),
   mTank2 = MedTank.new(6,5,2),
   tank = Tank.new(1,3,2),
   art2 = Artillery.new(0,1,2),
   art3 = Artillery.new(1,1,2),
-  #rocket = Rocket.new(0,2,2),
+  rocket = Rocket.new(0,2,2),
   aa = AntiAir.new(1,6,2),
   fgtr = Fighter.new(2,14,2),
   sub = Submarine.new(2,11,2),
@@ -81,7 +82,7 @@ for u in player2.units
   @sprites << u
 end
 
-###Attacking###
+###Combat###
 def attack(attacker, attacked,currentPlayer)
   p("before attack:")
   p("Attaking " + attacker.class.to_s + " health: " + (attacker.health).to_s)
@@ -306,7 +307,7 @@ def genSpaceMovement(space, mvmt, spaceArr, warMachine)
       !( (space.occoupiedWM && (space.occoupiedWM.commander != warMachine.commander)) \
       || (space.terrain.class == Mountain && (warMachine.class != (Infantry || Mech) && !warMachine.isFlying)) \
       || (space.terrain.class == Sea && (!warMachine.isFlying && !warMachine.isSailing)) \
-      || (space.terrain.class != Sea && warMachine.isSailing)))
+      || (space.terrain.class != Sea && space.terrain.class != Shoal && warMachine.isSailing)))
         space.setSpaceMvmt(mvmt)
         if(warMachine.isFlying)
           spaceArr.concat(genSpaceMovement(space, mvmt - 1, spaceArr, warMachine))
@@ -416,7 +417,7 @@ def movePath(warMachine)
 
         if(event.key == :s)#258
           warMachine.setHasMoved()
-          tmpSpace = @field.getSpace([currentSpace.x+1, currentSpace.y]) ##Down
+          tmpSpace = @field.getSpace([currentSpace.x+1, currentSpace.y])
           if(tmpArr.include?(tmpSpace))
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
@@ -426,7 +427,7 @@ def movePath(warMachine)
           end
         elsif(event.key == :w)#259
           warMachine.setHasMoved()
-          tmpSpace = @field.getSpace([currentSpace.x-1, currentSpace.y]) ##Down
+          tmpSpace = @field.getSpace([currentSpace.x-1, currentSpace.y])
           if(tmpArr.include?(tmpSpace))
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
@@ -436,7 +437,7 @@ def movePath(warMachine)
           end
         elsif(event.key == :a)#260
           warMachine.setHasMoved()
-          tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y-1]) ##Down
+          tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y-1]) 
           if(tmpArr.include?(tmpSpace))
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
@@ -496,7 +497,7 @@ def movePath(warMachine)
 
 =end
           warMachine.setHasMoved()
-          tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y+1]) ##Down
+          tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y+1])
           if(tmpArr.include?(tmpSpace))
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
