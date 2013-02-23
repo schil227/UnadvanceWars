@@ -24,6 +24,7 @@ class Player
 
   def addUnits(unitArray) ###CHANGE TO THIS INSTANCE INSTED OF PASSING PLAYER
     @units.concat(unitArray)
+    
     for unit in unitArray
       unit.setCommander(self)
     end
@@ -35,6 +36,10 @@ class Player
 
   def toggleIsTurn()
     !@isTurn
+  end
+  
+  def printUnits()
+    @units.collect{|unit| unit.class}
   end
 
   def hasUnusedUnits()

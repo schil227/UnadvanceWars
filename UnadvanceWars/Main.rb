@@ -37,16 +37,16 @@ end
 @event_queue = EventQueue.new
 @event_queue.enable_new_style_events
 p1Units = [
-  mTank = MedTank.new(5,5,1),
-  art = Artillery.new(2,3,1),
-  tank2 = Tank.new(0,4,1),
+#  mTank = MedTank.new(5,5,1),
+#  art = Artillery.new(2,3,1),
+#  tank2 = Tank.new(0,4,1),
   inf = Infantry.new(6,7,1),
-  chop = BChopper.new(5,8,1),
-  bat = Battleship.new(3,11,1),
-  bomb = Bomber.new(3,7,1),
-  crsr = Cruiser.new(3,10,1),
-  recon1 = Recon.new(2,8,1),
-  mech1 = Mech.new(2,9,1),
+#  chop = BChopper.new(5,8,1),
+#  bat = Battleship.new(3,11,1),
+#  bomb = Bomber.new(3,7,1),
+#  crsr = Cruiser.new(3,10,1),
+#  recon1 = Recon.new(2,8,1),
+#  mech1 = Mech.new(2,9,1),
   apc = APC.new(6,8,1)
 ]
 
@@ -91,11 +91,11 @@ def attack(attacker, attacked,currentPlayer)
     attacker.decHealth(calcDamage(attacked,attacker))
   elsif(attacked.health < 1)
     p("Defending " + attacked.class.to_s + " was destroyed!")
-    destroy(attacked)
+    destroy(attacked, attacked.commander)
   end
   if(attacker.health < 1) #destroyed in counter attack
     p("Attacking " + attacker.class.to_s + " was destroyed!")
-    destroy(attacker)
+    destroy(attacker, attacker.commander)
   end
   p("After attack:")
   p("Attaking " + attacker.class.to_s + " health: " + (attacker.health).to_s)
@@ -103,11 +103,11 @@ def attack(attacker, attacked,currentPlayer)
 
 end
 
-def destroy(warMachine)
+def destroy(warMachine, currentPlayer)
   @sprites.delete(warMachine)
-  if(warMachine.commandList.include?("deploy") && warMachine.hasDeployableUnits)
+  if(warMachine.unitCommands.include?("deploy") && warMachine.hasDeployableUnits)
     for unit in warMachine.convoyedUnits
-     destoryOffScreenUnit(unit)
+      destoryOffScreenUnit(unit,currentPlayer)
     end
   end
   warMachine.destroyed()
@@ -116,14 +116,14 @@ def destroy(warMachine)
   @field.removeWM(warMachine)
 end
 
-def destoryOffScreenUnit(warMachine)
-    if(warMachine.commandList.include?("deploy") && warMachine.hasDeployableUnits)
-      for unit in warMachine.convoyedUnits
-       destoryOffScreenUnit(unit)
-      end
+def destoryOffScreenUnit(warMachine, currentPlayer)
+  if(warMachine.unitCommands.include?("deploy") && warMachine.hasDeployableUnits)
+    for unit in warMachine.convoyedUnits
+      destoryOffScreenUnit(unit,currentPlayer)
     end
-    warMachine.destroyed()
-    currentPlayer.removeUnit(warMachine)
+  end
+  warMachine.destroyed()
+  currentPlayer.removeUnit(warMachine)
 end
 
 def calcDamage(attacker, attacked)
