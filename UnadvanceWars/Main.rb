@@ -47,11 +47,11 @@ p1Units = [
   crsr = Cruiser.new(3,10,1),
   recon1 = Recon.new(2,8,1),
   mech1 = Mech.new(2,9,1),
-  apc = APC.new(6,8,1)
+  apc = APC.new(6,8,1),
+  lan = Lander.new(6,11,1)
 ]
 
 p2Units = [
-  lan = Lander.new(1,11,2),
   mTank2 = MedTank.new(6,5,2),
   tank = Tank.new(1,3,2),
   art2 = Artillery.new(0,1,2),
@@ -645,6 +645,18 @@ def selectUnit(currentPlayer)
   return warMachine
 end
 
+#call this for each unit in the warmachine
+def deployableSpots(wMX, wMY, unitClass) 
+  spaceArr = [
+    @field.getSpace([warMachine.wMX+1, warMachine.wMY]),
+    @field.getSpace([warMachine.wMX-1, warMachine.wMY]),
+    @field.getSpace([warMachine.wMX, warMachine.wMY+1]),
+    @field.getSpace([warMachine.wMX, warMachine.wMY-1])
+  ]
+      
+  return spaceArr.delete_if{|space| space.terrain.class == Sea || (space.terrain.class == Mountain && unitClass.class != (Infantry || Mech))}   
+end
+
 def openAdjacentLand(warMachine)
   if(@field.getSpace([warMachine.x+1, warMachine.y]).terrain.class != Sea && @field.getSpace([warMachine.x+1, warMachine.y]).occoupiedWM == nil)
     return true
@@ -724,17 +736,9 @@ end
 def genPossibleCommands(warMachine,commandList, currentPlayer)
   possibleCommands = ["xgo back"]
   if(@field.getSpace(warMachine.getCord).tmpOccoupiedWM) #space has 2 WMs (the already residing wm, and current wm as tmp)
-    p(@field.getSpace(warMachine.getCord).occoupiedWM.class)
-    p(@field.getSpace(warMachine.getCord).tmpOccoupiedWM.class)
-    p("space has 2 wms")
     if(commandList.include?("join") || (@field.getSpace(warMachine.getCord).occoupiedWM.class == Lander && (!warMachine.isFlying  && !warMachine.isSailing)))
-      p(@field.getSpace(warMachine.getCord).occoupiedWM.class)
-      p(@field.getSpace(warMachine.getCord).tmpOccoupiedWM.class)
-      p(@field.getSpace(warMachine.getCord).occoupiedWM.unitCommands)
       if(@field.getSpace(warMachine.getCord).occoupiedWM.unitCommands.include?("deploy"))
-        p("tier 2")
         if(@field.getSpace(warMachine.getCord).occoupiedWM.hasRoom())
-          p("tier 3")
           possibleCommands.concat(["join"])
         end
       end
@@ -778,7 +782,11 @@ def genPossibleCommands(warMachine,commandList, currentPlayer)
     end
     if(commandList.include?("deploy"))
       if(warMachine.hasDeployableUnits())
-        if(openAdjacentLand(warMachine))
+        tmpArr = []
+        for convoyedUnit in warMachine.convoyedUnits
+          tmpArr.concat(deployableSpots(warMachine.x,warMachine.y,convoyedUnit.class))    
+        end
+        if(!tmpArr.empty?)
           possibleCommands.concat(["deploy"])
         end
       end
