@@ -648,13 +648,21 @@ end
 #call this for each unit in the warmachine
 def deployableSpots(wMX, wMY, unitClass) 
   spaceArr = [
-    @field.getSpace([warMachine.wMX+1, warMachine.wMY]),
-    @field.getSpace([warMachine.wMX-1, warMachine.wMY]),
-    @field.getSpace([warMachine.wMX, warMachine.wMY+1]),
-    @field.getSpace([warMachine.wMX, warMachine.wMY-1])
+    @field.getSpace([wMX+1, wMY]),
+    @field.getSpace([wMX-1, wMY]),
+    @field.getSpace([wMX, wMY+1]),
+    @field.getSpace([wMX, wMY-1])
   ]
       
   return spaceArr.delete_if{|space| space.terrain.class == Sea || (space.terrain.class == Mountain && unitClass.class != (Infantry || Mech))}   
+end
+
+#Rough cut of deploy: currently returns the first open spot in the deployableSpots list (usually the south spot)
+def deploy(unit, unitToDeploy)
+  tmpCord = deployableSpots(unit.x, unit.y, unitToDeploy.class).at(0).getCord()
+  unitToDeploy.setCord(tmpCord.at(0), tmpCord.at(1))
+  @field.addWM(unitToDeploy)
+  @sprites << unitToDeploy
 end
 
 def openAdjacentLand(warMachine)
@@ -852,6 +860,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
           if(cmdList.include?("deploy"))
             #tmpWarMachine = warMachine.deploy()
             #UPDATE MOVEMENT
+            deploy(warMachine, warMachine.deploy)
             #@field.addWM(tmpWarMachine)
             for space in rangeArr
               space.toggleIsCursor()
