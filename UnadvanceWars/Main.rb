@@ -649,12 +649,12 @@ end
 def deployableSpots(wMX, wMY, unitClass)
   spaceArr = [
     @field.getSpace([wMX+1, wMY]),
-    @field.getSpace([wMX-1, wMY]),
     @field.getSpace([wMX, wMY+1]),
+    @field.getSpace([wMX-1, wMY]),
     @field.getSpace([wMX, wMY-1])
   ]
 
-  return spaceArr.delete_if{|space| space.terrain.class == Sea || (space.terrain.class == Mountain && unitClass.class != (Infantry || Mech))}
+  return spaceArr.delete_if{|space| space == nil || space.terrain.class == Sea || (space.terrain.class == Mountain && unitClass.class != (Infantry || Mech)) || space.occoupiedWM != nil}
 end
 
 #Rough cut of deploy: currently returns the first open spot in the deployableSpots list (usually the south spot)
@@ -731,16 +731,20 @@ end
 
 def neighboringFriendlyUnits(warMachine)
   listOfUnits = []
-  if(@field.getSpace([warMachine.x+1, warMachine.y]).occoupiedWM != nil)
+  if(@field.getSpace([warMachine.x+1, warMachine.y]) != nil && \
+    @field.getSpace([warMachine.x+1, warMachine.y]).occoupiedWM != nil)
     listOfUnits.concat([@field.getSpace([warMachine.x+1, warMachine.y]).occoupiedWM])
   end
-  if(@field.getSpace([warMachine.x-1, warMachine.y]).occoupiedWM != nil)
+  if(@field.getSpace([warMachine.x-1, warMachine.y]) != nil && \
+    @field.getSpace([warMachine.x-1, warMachine.y]).occoupiedWM != nil)
     listOfUnits.concat([@field.getSpace([warMachine.x-1, warMachine.y]).occoupiedWM])
   end
-  if(@field.getSpace([warMachine.x, warMachine.y+1]).occoupiedWM != nil)
+  if( @field.getSpace([warMachine.x, warMachine.y+1]) != nil && \
+    @field.getSpace([warMachine.x, warMachine.y+1]).occoupiedWM != nil)
     listOfUnits.concat([@field.getSpace([warMachine.x, warMachine.y+1]).occoupiedWM])
   end
-  if(@field.getSpace([warMachine.x, warMachine.y-1]).occoupiedWM != nil)
+  if(@field.getSpace([warMachine.x, warMachine.y-1]) != nil && \
+    @field.getSpace([warMachine.x, warMachine.y-1]).occoupiedWM != nil)
     listOfUnits.concat([@field.getSpace([warMachine.x, warMachine.y-1]).occoupiedWM])
   end
   for unit in listOfUnits
@@ -908,12 +912,14 @@ def unitAction(warMachine, currentPlayer, previousCords)
           if(cmdList.include?("deploy"))
             #tmpWarMachine = warMachine.deploy()
             #UPDATE MOVEMENT
-            deploy(warMachine, warMachine.deploy)
+
             #@field.addWM(tmpWarMachine)
             for space in rangeArr
               space.toggleIsCursor()
               @sprites.delete(space)
             end
+
+            deploy(warMachine, warMachine.deploy)
             warMachine.setHasMoved()
             unAnswered = false
           end
