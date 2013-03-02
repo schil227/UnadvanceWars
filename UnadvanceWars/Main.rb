@@ -220,7 +220,7 @@ def selectTarget(attackableWMs) #cycles 'left' and 'right' through the list of a
     return attackableWMs.at(0)
   end
 
-  p("Select The machine you want to attack: cycle (a) left and (b) right, (f) to select")
+  p("Select The machine you want to attack: cycle (a) left and (d) right, (f) to select")
   x = 0
   currentWM = attackableWMs.at(x)
   currentWMSpace = @field.getSpace([currentWM.x, currentWM.y])
@@ -437,7 +437,7 @@ def movePath(warMachine)
           end
         elsif(event.key == :a)#260
           warMachine.setHasMoved()
-          tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y-1]) 
+          tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y-1])
           if(tmpArr.include?(tmpSpace))
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
@@ -646,21 +646,69 @@ def selectUnit(currentPlayer)
 end
 
 #call this for each unit in the warmachine
-def deployableSpots(wMX, wMY, unitClass) 
+def deployableSpots(wMX, wMY, unitClass)
   spaceArr = [
     @field.getSpace([wMX+1, wMY]),
     @field.getSpace([wMX-1, wMY]),
     @field.getSpace([wMX, wMY+1]),
     @field.getSpace([wMX, wMY-1])
   ]
-      
-  return spaceArr.delete_if{|space| space.terrain.class == Sea || (space.terrain.class == Mountain && unitClass.class != (Infantry || Mech))}   
+
+  return spaceArr.delete_if{|space| space.terrain.class == Sea || (space.terrain.class == Mountain && unitClass.class != (Infantry || Mech))}
 end
 
 #Rough cut of deploy: currently returns the first open spot in the deployableSpots list (usually the south spot)
 def deploy(unit, unitToDeploy)
-  tmpCord = deployableSpots(unit.x, unit.y, unitToDeploy.class).at(0).getCord()
-  unitToDeploy.setCord(tmpCord.at(0), tmpCord.at(1))
+
+  p("Select the space where you want to deploy: cycle (a) left and (d) right, (f) to select")
+  deployableSpaces = deployableSpots(unit.x, unit.y, unitToDeploy.class)
+  x = 0
+  tmpSpace = deployableSpaces.at(x)
+  tmpSpace.toggleIsCursor()
+  @sprites << tmpSpace
+
+  unselected = true
+  while(unselected)
+    seconds_passed = @clock.tick().seconds
+    update(seconds_passed)
+    @event_queue.each do |event|
+      case event
+      when Events::QuitRequested
+        throw :rubygame_quit
+      when Events:: KeyPressed
+        if(event.key == :a)
+          if(x == 0)
+            x = deployableSpaces.length() - 1
+          else
+            x -= 1
+          end
+          @sprites.delete(tmpSpace)
+          tmpSpace.toggleIsCursor()
+          tmpSpace = deployableSpaces.at(x)
+          tmpSpace.toggleIsCursor()
+          @sprites << tmpSpace
+        elsif(event.key == :d)
+          if(x == deployableSpaces.length() - 1)
+            x = 0
+          else
+            x += 1
+          end
+          @sprites.delete(tmpSpace)
+          tmpSpace.toggleIsCursor()
+          tmpSpace = deployableSpaces.at(x)
+          tmpSpace.toggleIsCursor()
+          @sprites << tmpSpace
+        elsif(event.key == :f)
+          unselected = false
+          @sprites.delete(tmpSpace)
+          tmpSpace.toggleIsCursor()
+        end
+      end
+    end
+
+  end
+
+  unitToDeploy.setCord(tmpSpace.getCord.at(0), tmpSpace.getCord.at(1))
   @field.addWM(unitToDeploy)
   @sprites << unitToDeploy
 end
@@ -792,7 +840,7 @@ def genPossibleCommands(warMachine,commandList, currentPlayer)
       if(warMachine.hasDeployableUnits())
         tmpArr = []
         for convoyedUnit in warMachine.convoyedUnits
-          tmpArr.concat(deployableSpots(warMachine.x,warMachine.y,convoyedUnit.class))    
+          tmpArr.concat(deployableSpots(warMachine.x,warMachine.y,convoyedUnit.class))
         end
         if(!tmpArr.empty?)
           possibleCommands.concat(["deploy"])
