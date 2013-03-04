@@ -630,6 +630,12 @@ def selectUnit(currentPlayer)
               spotSelected = true
             end
           end
+        elsif(event.key == :x)
+          ## ###Causing extra curser glitch?
+              currentSpace.toggleIsCursor()
+              @sprites.delete(currentSpace)
+              warMachine = nil
+              spotSelected = true
         else
           puts("Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select")
         end
@@ -732,19 +738,19 @@ end
 def neighboringFriendlyUnits(warMachine)
   listOfUnits = []
   if(@field.getSpace([warMachine.x+1, warMachine.y]) != nil && \
-    @field.getSpace([warMachine.x+1, warMachine.y]).occoupiedWM != nil)
+  @field.getSpace([warMachine.x+1, warMachine.y]).occoupiedWM != nil)
     listOfUnits.concat([@field.getSpace([warMachine.x+1, warMachine.y]).occoupiedWM])
   end
   if(@field.getSpace([warMachine.x-1, warMachine.y]) != nil && \
-    @field.getSpace([warMachine.x-1, warMachine.y]).occoupiedWM != nil)
+  @field.getSpace([warMachine.x-1, warMachine.y]).occoupiedWM != nil)
     listOfUnits.concat([@field.getSpace([warMachine.x-1, warMachine.y]).occoupiedWM])
   end
   if( @field.getSpace([warMachine.x, warMachine.y+1]) != nil && \
-    @field.getSpace([warMachine.x, warMachine.y+1]).occoupiedWM != nil)
+  @field.getSpace([warMachine.x, warMachine.y+1]).occoupiedWM != nil)
     listOfUnits.concat([@field.getSpace([warMachine.x, warMachine.y+1]).occoupiedWM])
   end
   if(@field.getSpace([warMachine.x, warMachine.y-1]) != nil && \
-    @field.getSpace([warMachine.x, warMachine.y-1]).occoupiedWM != nil)
+  @field.getSpace([warMachine.x, warMachine.y-1]).occoupiedWM != nil)
     listOfUnits.concat([@field.getSpace([warMachine.x, warMachine.y-1]).occoupiedWM])
   end
   for unit in listOfUnits
@@ -757,7 +763,7 @@ end
 
 def getCommand(currentPlayer)
   unAnswered = true
-  p("(s)elect unit or (e)nd turn?  (no end turn functionality yet)")
+  p("(s)elect unit or (e)nd turn?")
   while unAnswered
 
     seconds_passed = @clock.tick().seconds
@@ -768,9 +774,11 @@ def getCommand(currentPlayer)
         if(event.key == :s)
           if(currentPlayer.hasUnusedUnits())
             wM = selectUnit(currentPlayer)
-            currentCords = wM.getCord()
-            move(wM, movePath(wM)) #Generates the movement for unit/moves and sets unit
-            unitAction(wM,currentPlayer,currentCords) #takes the updated unit (new position) and asks what it'll do
+            if(wM != nil)
+              currentCords = wM.getCord()
+              move(wM, movePath(wM)) #Generates the movement for unit/moves and sets unit
+              unitAction(wM,currentPlayer,currentCords) #takes the updated unit (new position) and asks what it'll do
+            end
           end
         elsif(event.key == :e)
           unAnswered = false
