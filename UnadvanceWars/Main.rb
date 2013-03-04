@@ -565,7 +565,7 @@ def selectUnit(currentPlayer)
   currentSpace.toggleIsCursor()
   @sprites << currentSpace
   warMachine = nil
-  puts("Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select")
+  puts("Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select or (x) to cancel")
   #@field.printField
   while true
     seconds_passed = @clock.tick().seconds
@@ -637,7 +637,7 @@ def selectUnit(currentPlayer)
               warMachine = nil
               spotSelected = true
         else
-          puts("Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select")
+          puts("Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select or (x) to cancel")
         end
       end
     end
