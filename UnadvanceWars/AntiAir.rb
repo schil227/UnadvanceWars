@@ -70,10 +70,6 @@ class AntiAir
       @attackTable
     end
 
-    def self.secondaryAttackTable
-      @secondaryAttackTable
-    end
-
     def self.commander
       @commander
     end

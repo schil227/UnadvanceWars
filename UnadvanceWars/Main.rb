@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 Dir["./*.rb"].each {|file|
-  if (file != "./Main.rb" && file != "./asdf.rb" && file != "./asdf2.rb")
+  if (file != "./Main.rb" && file != "./asdf.rb" && file != "./asdf2.rb" && file != "./textEx.rb")
     require file
   end}
 
@@ -15,8 +15,8 @@ file.rewind
 @mapy = file.readline().size - 1
 @field = Field.new(@mapx, @mapy) #x & y are flipped D:
 @field.setupField()
-
-@screen = Screen.open [ @mapx * 50, @mapy *50]
+@consoleXCord = @mapx * 50 + 5
+@screen = Screen.open [@mapx * 50 + 175, @mapy *50]
 @clock = Clock.new
 @clock.target_framerate = 60
 @clock.enable_tick_events
@@ -33,20 +33,23 @@ Sprites::UpdateGroup.extend_object @sprites
 for space in @field.sfield
   @sprites.concat([space.terrain])
 end
+#####################smooth, colorArr, baseSize,xCord,yCord)
+@console = Console.new(@consoleXCord,  @mapy *50)
+@sprites << @console
 
 @event_queue = EventQueue.new
 @event_queue.enable_new_style_events
 p1Units = [
-  mTank = MedTank.new(5,5,1),
-  art = Artillery.new(2,3,1),
-  tank2 = Tank.new(0,4,1),
+  #mTank = MedTank.new(5,5,1),
+  #art = Artillery.new(2,3,1),
+  #tank2 = Tank.new(0,4,1),
   inf = Infantry.new(6,7,1),
-  chop = BChopper.new(5,8,1),
-  bat = Battleship.new(3,11,1),
-  bomb = Bomber.new(3,7,1),
-  crsr = Cruiser.new(3,10,1),
-  recon1 = Recon.new(2,8,1),
-  mech1 = Mech.new(2,9,1),
+  #chop = BChopper.new(5,8,1),
+  #bat = Battleship.new(3,11,1),
+  #bomb = Bomber.new(3,7,1),
+  #crsr = Cruiser.new(3,10,1),
+  #recon1 = Recon.new(2,8,1),
+  #mech1 = Mech.new(2,9,1),
   apc = APC.new(6,8,1),
   lan = Lander.new(6,11,1)
 ]
@@ -215,11 +218,7 @@ def attackableWarMachines(arr,currentPlayer, warMachine) #array of Cords
   return wMarr
 end
 
-def selectTarget(attackableWMs) #cycles 'left' and 'right' through the list of attackable WMs
-  if(attackableWMs.length() == 1)
-    return attackableWMs.at(0)
-  end
-
+def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through the list of attackable WMs
   p("Select The machine you want to attack: cycle (a) left and (d) right, (f) to select")
   x = 0
   currentWM = attackableWMs.at(x)
@@ -227,9 +226,10 @@ def selectTarget(attackableWMs) #cycles 'left' and 'right' through the list of a
 
   currentWMSpace.toggleIsCursor()
   @sprites << currentWMSpace
-
   unselected = true
+  
   while unselected
+    updateConsoleLockUnit(currentWMSpace.terrain,currentWM,calcDamage(warMachine,currentWM))
     seconds_passed = @clock.tick().seconds
     update(seconds_passed)
     @event_queue.each do |event|
@@ -405,7 +405,8 @@ def movePath(warMachine)
 
   p("Move the War Machine using w,s,a,d and (f) to select")
   tmpField([currentSpace.getCord()])
-  while true
+  while !spotSelected
+    updateConsoleLockUnit(currentSpace.terrain,nil,nil)
     seconds_passed = @clock.tick().seconds
     update(seconds_passed)
     @event_queue.each do |event|
@@ -514,15 +515,11 @@ def movePath(warMachine)
         end
       end
     end
-    if(spotSelected)
-      currentSpace.toggleIsCursor()
-      @sprites.delete(currentSpace)
-      break
-    end
-
-    #tmpField([currentSpace.getCord()])
-
+    
   end
+  
+  currentSpace.toggleIsCursor()
+  @sprites.delete(currentSpace)
 
   for space in tmpArr
     space.setIsCursorFalse()
@@ -567,9 +564,20 @@ def selectUnit(currentPlayer)
   warMachine = nil
   puts("Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select or (x) to cancel")
   #@field.printField
-  while true
+  while !spotSelected
     seconds_passed = @clock.tick().seconds
     update(seconds_passed)
+    if(currentSpace.occoupiedWM) #is a WM on this space?
+      if(currentPlayer.isUnit(currentSpace.occoupiedWM))
+        warMachine = currentSpace.occoupiedWM
+        updateConsole(currentSpace.terrain,currentSpace.occoupiedWM,nil,nil)
+      else
+        warMachine = nil
+        updateConsole(currentSpace.terrain,nil,currentSpace.occoupiedWM,nil)
+      end
+    else
+      updateConsole(currentSpace.terrain,nil,nil,nil)
+    end
     @event_queue.each do |event|
       case event
       when Events::QuitRequested
@@ -622,28 +630,23 @@ def selectUnit(currentPlayer)
           end
         elsif(event.key == :f)
           ## ###Causing extra curser glitch?
-          if(currentSpace.occoupiedWM) #is a WM on this space?
-            if(currentPlayer.isUnit(currentSpace.occoupiedWM) && !currentSpace.occoupiedWM.hasMoved) #is the WM part of the current player?
+            if(warMachine != nil && currentPlayer.isUnit(warMachine) && !warMachine.hasMoved) #is the WM part of the current player?
               currentSpace.toggleIsCursor()
               @sprites.delete(currentSpace)
               warMachine = currentSpace.occoupiedWM
               spotSelected = true
-            end
           end
         elsif(event.key == :x)
           ## ###Causing extra curser glitch?
-              currentSpace.toggleIsCursor()
-              @sprites.delete(currentSpace)
-              warMachine = nil
-              spotSelected = true
+          currentSpace.toggleIsCursor()
+          @sprites.delete(currentSpace)
+          warMachine = nil
+          spotSelected = false
         else
           puts("Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select or (x) to cancel")
         end
-      end
-    end
 
-    if(spotSelected)
-      break
+      end
     end
 
   end
@@ -890,7 +893,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
               space.toggleIsCursor()
               @sprites.delete(space)
             end
-            attack(warMachine, selectTarget(attackableWMs),currentPlayer)
+            attack(warMachine, selectTarget(warMachine,attackableWMs),currentPlayer)
             warMachine.setHasMoved()
             unAnswered = false
           end
@@ -1006,6 +1009,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
       end
     end
   end
+updateConsole(nil,nil,nil,nil)
 end
 
 def nextPlayerPosition(x) #returns the position of the next person in the listOfP array
@@ -1032,14 +1036,11 @@ def setUnitsUnmoved(currentPlayer)
 end
 
 def update(seconds_passed)
-  @sprites.undraw @screen, @background
-
+  #@sprites.undraw @screen, @background
   # Give all of the sprites an opportunity to move themselves to a new location
   @sprites.update  seconds_passed
-
   # Draw all of the sprites
   @sprites.draw @screen
-
   @screen.flip
 end
 
@@ -1079,6 +1080,18 @@ def preTurnActions(player) # does various things that occur before a turn, such 
       end
     end
   end
+end
+
+def updateConsole(terrain,playerWM,target,damagePercentage)
+  @sprites.delete(@console)
+  @console.modify(terrain,playerWM,target,damagePercentage)
+  @sprites << @console
+end
+
+def updateConsoleLockUnit(terrain,target,damagePercentage)
+  @sprites.delete(@console)
+  @console.modifyUnitLocked(terrain,target,damagePercentage)
+  @sprites << @console
 end
 
 def main()
