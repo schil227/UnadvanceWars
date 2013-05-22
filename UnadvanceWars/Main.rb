@@ -40,16 +40,16 @@ end
 @event_queue = EventQueue.new
 @event_queue.enable_new_style_events
 p1Units = [
-  #mTank = MedTank.new(5,5,1),
-  #art = Artillery.new(2,3,1),
-  #tank2 = Tank.new(0,4,1),
+  mTank = MedTank.new(5,5,1),
+  art = Artillery.new(2,3,1),
+  tank2 = Tank.new(0,4,1),
   inf = Infantry.new(6,7,1),
-  #chop = BChopper.new(5,8,1),
-  #bat = Battleship.new(3,11,1),
-  #bomb = Bomber.new(3,7,1),
-  #crsr = Cruiser.new(3,10,1),
-  #recon1 = Recon.new(2,8,1),
-  #mech1 = Mech.new(2,9,1),
+  chop = BChopper.new(5,8,1),
+  bat = Battleship.new(3,11,1),
+  bomb = Bomber.new(3,7,1),
+  crsr = Cruiser.new(3,10,1),
+  recon1 = Recon.new(2,8,1),
+  mech1 = Mech.new(2,9,1),
   apc = APC.new(6,8,1),
   lan = Lander.new(6,11,1)
 ]
@@ -91,8 +91,10 @@ def attack(attacker, attacked,currentPlayer)
   p("Attaking " + attacker.class.to_s + " health: " + (attacker.health).to_s)
   p("Defending " + attacked.class.to_s + " health: " + (attacked.health).to_s)
   attacked.decHealth(calcDamage(attacker,attacked)) #would add land def here
+  attacker.decAmmo
   if(attacked.health > 0 && attacker.isDirect && attacked.isDirect) #counter attack, D v D only
     attacker.decHealth(calcDamage(attacked,attacker))
+    attacked.decAmmo
   elsif(attacked.health < 1)
     p("Defending " + attacked.class.to_s + " was destroyed!")
     destroy(attacked, attacked.commander)
@@ -133,7 +135,6 @@ end
 def calcDamage(attacker, attacked)
   attackPower = 0
   if(attacker.ammo > 0 && attacker.attackTable[attacked.symb] != nil)
-    attacker.decAmmo
     attackPower = attacker.attackTable[attacked.symb] * (attacker.power)
   elsif( defined?(attacker.secondaryAttackTable))
     if(attacker.secondaryAttackTable[attacked.symb] != nil)
@@ -227,9 +228,11 @@ def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through t
   currentWMSpace.toggleIsCursor()
   @sprites << currentWMSpace
   unselected = true
-  
+
   while unselected
     updateConsoleLockUnit(currentWMSpace.terrain,currentWM,calcDamage(warMachine,currentWM))
+    p("warM: " + warMachine.class.to_s + " currentWM: " + currentWM.class.to_s)
+    p("warM ammo : " + warMachine.ammo.to_s)
     seconds_passed = @clock.tick().seconds
     update(seconds_passed)
     @event_queue.each do |event|
@@ -515,9 +518,9 @@ def movePath(warMachine)
         end
       end
     end
-    
+
   end
-  
+
   currentSpace.toggleIsCursor()
   @sprites.delete(currentSpace)
 
@@ -630,11 +633,11 @@ def selectUnit(currentPlayer)
           end
         elsif(event.key == :f)
           ## ###Causing extra curser glitch?
-            if(warMachine != nil && currentPlayer.isUnit(warMachine) && !warMachine.hasMoved) #is the WM part of the current player?
-              currentSpace.toggleIsCursor()
-              @sprites.delete(currentSpace)
-              warMachine = currentSpace.occoupiedWM
-              spotSelected = true
+          if(warMachine != nil && currentPlayer.isUnit(warMachine) && !warMachine.hasMoved) #is the WM part of the current player?
+            currentSpace.toggleIsCursor()
+            @sprites.delete(currentSpace)
+            warMachine = currentSpace.occoupiedWM
+            spotSelected = true
           end
         elsif(event.key == :x)
           ## ###Causing extra curser glitch?
@@ -1009,7 +1012,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
       end
     end
   end
-updateConsole(nil,nil,nil,nil)
+  updateConsole(nil,nil,nil,nil)
 end
 
 def nextPlayerPosition(x) #returns the position of the next person in the listOfP array

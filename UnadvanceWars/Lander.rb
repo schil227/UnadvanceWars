@@ -142,7 +142,7 @@ class Lander
     return (@convoyedUnit == nil || @convoyedUnit2 == nil)
   end
 
-  #it is implied that this option will be unavailable if there is no room, 
+  #it is implied that this option will be unavailable if there is no room,
   #if one is closed then the other is open, and vise virsa
   def convoy(warMachine)
     if(!@convoyedUnit)
@@ -154,8 +154,14 @@ class Lander
 
   #need to update functionality for multiple WMS
   def deploy()
-    warMachine = @convoyedUnit
-    @convoyedUnit = nil
+    #getting to this step implies that one of the two spots are occoupied by units
+    if(@convoyedUnit != nil)
+      warMachine = @convoyedUnit
+      @convoyedUnit = nil
+    else
+      warMachine = @convoyedUnit2
+      @convoyedUnit2 = nil
+    end
     return warMachine
   end
 
