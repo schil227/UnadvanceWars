@@ -6,17 +6,45 @@ include Rubygame
 class City
 
   include Sprites::Sprite
-  def initialize(space)
+  def initialize(space, typeNumber, initialCommanderNumber)
     super()
     @occoupiedPlayer = nil
     @cityLevel = 20
     @defence = 3
     @movement = 1
     @space = space
-    @image = (Surface.load "data/city.gif")
-    @rect = @image.make_rect
+
     @x = @space.y
     @y = @space.x
+    @typeNumber = typeNumber
+    @initialCommanderNumber = initialCommanderNumber
+    @isCapital = false
+    @imageName = ""
+    @imageName = setImageName(initialCommanderNumber,typeNumber)
+
+    @image = (Surface.load @imageName)
+    @rect = @image.make_rect
+    @timeSum = 0
+    @stepBool = true
+    @landUnits= [["Infantry", 1000], ["Mech", 3000], ["Recon", 4000], ["APC", 5000], ["Tank", 6000], ["Artillery", 7000], ["AntiAir", 8000], ["Missile", 14000], ["Rocket", 15000], ["MedTank", 16000]]
+    @createableUnits
+
+    def self.x
+      @x
+    end
+
+    def self.y
+      @y
+    end
+
+    def self.createableUnits
+      @createableUnits
+    end
+
+    def self.initialCommanderNumber
+      @initialCommanderNumber
+    end
+
     def self.occoupiedPlayer
       @occoupiedPlayer
     end
@@ -29,21 +57,28 @@ class City
       @defence
     end
 
+    def self.isCapital
+      @isCapital
+    end
+
+    def self.typeNumber
+      @typeNumber
+    end
+
   end
 
-  def setOccoupiedPlayer(playerNum)
-    case (playerNum)
+  def setImageName(playerNumber,typeNumber)
+    imageName = "data/p" + playerNumber.to_s
+    case typeNumber
+    when 0
+      imageName+= "City.gif"
     when 1
-      @imageName = "data/p1City.gif"
+      imageName+= "Capital.gif"
     when 2
-      @imageName = "data/p2City.gif"
-    when 3
-      @imageName = "data/p3City.gif"
-    when 4
-      @imageName = "data/p4City.gif"
-    else
-      @imageName = "data/city.gif"
+      imageName+= "Base1.gif"
+      @createableUnits =@landUnits
     end
+    return imageName
   end
 
   def conquer(unit)
@@ -54,12 +89,36 @@ class City
     end
   end
 
+  def setCapital()
+    @isCapital = true
+    @defence = 4
+  end
+
   def setOccoupiedPlayer(commander)
     @occoupiedPlayer = commander
-    @image = (Surface.load("data/p"+commander.playerNum.to_s+"city.gif"))
+    @imageName = setImageName(commander.playerNum,@typeNumber)
+    @image = (Surface.load(@imageName))
   end
 
   def update  seconds_passed
+    @timeSum += seconds_passed *10
+    if(@timeSum >= 5)
+      @timeSum = 0
+      if(@stepBool)
+        if(@typeNumber == 2 && @occoupiedPlayer != nil)
+          @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Base1.gif"
+          @image = (Surface.load(@imageName))
+        end
+        ##add more cases HERE
+      else
+        if(@typeNumber == 2 && @occoupiedPlayer != nil)
+          @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Base2.gif"
+          @image = (Surface.load(@imageName))
+        end
+        ##add more cases HERE
+      end
+      @stepBool = !@stepBool
+    end
     @rect.topleft = [50*@x,50*@y]
   end
 

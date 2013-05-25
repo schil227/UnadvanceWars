@@ -1,3 +1,14 @@
+Dir["./*.rb"].each {|file|
+  if (file != "./Main.rb" && file != "./asdf.rb"  && file != "./textEx.rb")
+    require file
+  end}
+
+require 'rubygems'
+require 'rubygame'
+
+include Rubygame
+
+
 file = File.open("data/map1.txt",'r')
 terrainArray =[]
 for line in file
@@ -63,3 +74,23 @@ for i in 1..100
     p(i)
   end
 end
+
+
+lilList = ['a','b','c']
+puts("list at 0: " + lilList.at(0))
+
+
+@landUnitPrices= [["Infantry", 1000], ["Mech", 3000], ["Recon", 4000], ["APC", 5000], ["Tank", 6000], ["Artillery", 7000], ["AntiAir", 8000], ["Missile", 14000], ["Rockets", 15000], ["MedTank", 16000]]
+
+#newTank =  Kernel.const_get("MedTank").new(5,6,2)
+##"MedTank".constantize.new(5,6,2)
+#@landUnitPrices.each{|key,value|
+#  p("<=a  #{key}  #{value}  d=>")
+#}
+#
+#p(newTank)
+
+pair = @landUnitPrices.at(3)
+p("<=a  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " b=>")
+
+p((t.class == MedTank).to_s)

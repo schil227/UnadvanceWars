@@ -26,14 +26,16 @@ class Field
     for i in 0..(@x-1) do
       for j in 0..(@y-1)
         @sfield.concat([Space.new(i,j)])
-        setupTerrain()
+        
       end
     end
+    return setupTerrain()
   end
 
   def setupTerrain
     file = File.open("data/map1.txt",'r')
     terrainArray=[]
+    cityArr=[]
     for line in file
       for char in line.each_char
         if char != "\n"
@@ -51,7 +53,10 @@ class Field
       when ("2")
         space.setTerrainValues(Forest.new(space))
       when ("C")
-        space.setTerrainValues(City.new(space))
+        space.setTerrainValues(City.new(space, terrainArray.at(x+1).to_i,terrainArray.at(x+2).to_i))
+          cityArr.push(space.terrain)
+          x+=2
+          p("still hope this doesnt print every time")
       when ("4")
         space.setTerrainValues(Mountain.new(space))
       when ("5")
@@ -60,8 +65,8 @@ class Field
         space.setTerrainValues(Shoal.new(space))
       end
       x+=1
-
     end
+    return cityArr
   end
 
   def addWM(warMachine)

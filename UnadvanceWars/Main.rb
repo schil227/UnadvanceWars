@@ -14,7 +14,8 @@ file = File.open("data/map1.txt",'r')
 file.rewind
 @mapy = file.readline().size - 1
 @field = Field.new(@mapx, @mapy) #x & y are flipped D:
-@field.setupField()
+@cityArr = @field.setupField()
+
 @consoleXCord = @mapx * 50 + 5
 @screen = Screen.open [@mapx * 50 + 175, @mapy *50]
 @clock = Clock.new
@@ -71,6 +72,12 @@ player1 = Player.new("uno",1)
 player2 = Player.new("dos",2)
 
 @listOfP = [player1,player2]
+
+for city in @cityArr
+  if(city.initialCommanderNumber != 0) #if 0 then unconqured city
+    city.setOccoupiedPlayer(@listOfP.at(city.initialCommanderNumber-1)) #number is adjusted for the list  location
+  end
+end
 
 player1.addUnits(p1Units)
 player2.addUnits(p2Units)
@@ -534,10 +541,6 @@ end
 
 #################Mechanics###########################################
 
-def timeStep()
-  sleep(0.25)
-end
-
 def tmpField(cords)
   listOfCords = @field.listOfCords()
   tmpSpaceArr = []
@@ -570,7 +573,7 @@ def selectUnit(currentPlayer)
   while !spotSelected
     seconds_passed = @clock.tick().seconds
     update(seconds_passed)
-    if(currentSpace.occoupiedWM) #is a WM on this space?
+    if(currentSpace.occoupiedWM) #Used in console and to set the WM for loop
       if(currentPlayer.isUnit(currentSpace.occoupiedWM))
         warMachine = currentSpace.occoupiedWM
         updateConsole(currentSpace.terrain,currentSpace.occoupiedWM,nil,nil)
@@ -638,23 +641,80 @@ def selectUnit(currentPlayer)
             @sprites.delete(currentSpace)
             warMachine = currentSpace.occoupiedWM
             spotSelected = true
+          elsif(isOpenFactory(currentSpace,currentPlayer))
+            p("yep, all is well! ")
+            buildNewUnit(currentPlayer, currentSpace.terrain, currentSpace.terrain.createableUnits)
           end
         elsif(event.key == :x)
           ## ###Causing extra curser glitch?
           currentSpace.toggleIsCursor()
           @sprites.delete(currentSpace)
           warMachine = nil
-          spotSelected = false
+          spotSelected = true
         else
-          puts("Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select or (x) to cancel")
+          puts("Else Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select or (x) to cancel")
         end
 
       end
     end
 
   end
-
   return warMachine
+end
+
+def isOpenFactory(space,currentPlayer)
+  terrain = space.terrain#check type for different buildings too, also tmpOcc may not matter, cant recall =]
+  return (terrain.class == City && terrain.occoupiedPlayer == currentPlayer && terrain.typeNumber == 2 && space.occoupiedWM == nil && space.tmpOccoupiedWM == nil)
+end
+
+def buildNewUnit(currentPlayer, factory, createableUnits)
+  unitSelected = false
+  x = 0
+  pair = createableUnits.at(x)
+  p("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
+  while(!unitSelected)
+    
+    seconds_passed = @clock.tick().seconds
+    update(seconds_passed)
+    @event_queue.each do |event|
+      case event
+      when Events::QuitRequested
+        throw :rubygame_quit
+      when Events::KeyPressed
+        if(event.key == :a)
+          if(x == 0)
+            x = createableUnits.length()-1
+          else
+            x -= 1
+          end
+          pair = createableUnits.at(x)
+          p("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
+        elsif(event.key == :d)
+          if(x == createableUnits.length()-1)
+            x = 0
+          else
+            x += 1
+          end
+          pair = createableUnits.at(x)
+          p("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
+        elsif(event.key == :s)
+          if(currentPlayer.funds - pair.at(1) > 0)
+          newUnit = Kernel.const_get(pair.at(0)).new(factory.y,factory.x,currentPlayer.playerNum)
+          currentPlayer.addUnits([newUnit])
+          @sprites << newUnit
+          @field.addWM(newUnit)
+          newUnit.setHasMoved()
+          p("current players funds: " + currentPlayer.funds.to_s)
+          currentPlayer.decreaseFunds(pair.at(1))
+          p("current players funds now: " + currentPlayer.funds.to_s)
+          unitSelected = true
+          end
+        elsif(event.key == :x)
+          unitSelected = true
+        end
+      end
+    end
+  end
 end
 
 #call this for each unit in the warmachine
@@ -669,7 +729,6 @@ def deployableSpots(wMX, wMY, unitClass)
   return spaceArr.delete_if{|space| space == nil || space.terrain.class == Sea || (space.terrain.class == Mountain && unitClass.class != (Infantry || Mech)) || space.occoupiedWM != nil}
 end
 
-#Rough cut of deploy: currently returns the first open spot in the deployableSpots list (usually the south spot)
 def deploy(unit, unitToDeploy)
 
   p("Select the space where you want to deploy: cycle (a) left and (d) right, (f) to select")
@@ -778,13 +837,11 @@ def getCommand(currentPlayer)
       case event
       when Events::KeyPressed
         if(event.key == :s)
-          if(currentPlayer.hasUnusedUnits())
-            wM = selectUnit(currentPlayer)
-            if(wM != nil)
-              currentCords = wM.getCord()
-              move(wM, movePath(wM)) #Generates the movement for unit/moves and sets unit
-              unitAction(wM,currentPlayer,currentCords) #takes the updated unit (new position) and asks what it'll do
-            end
+          wM = selectUnit(currentPlayer)
+          if(wM != nil)
+            currentCords = wM.getCord()
+            move(wM, movePath(wM)) #Generates the movement for unit/moves and sets unit
+            unitAction(wM,currentPlayer,currentCords) #takes the updated unit (new position) and asks what it'll do
           end
         elsif(event.key == :e)
           unAnswered = false

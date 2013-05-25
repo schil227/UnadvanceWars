@@ -4,6 +4,11 @@ class Player
     @playerNum = num
     @units = []
     @isTurn = false
+    @funds = 20000
+    
+    def self.funds
+      @funds
+    end
     
     def self.name
       @name
@@ -18,6 +23,10 @@ class Player
     end
   end
 
+  def decreaseFunds(expense)
+    @funds = @funds - expense
+  end
+  
   def isUnit(unit)
     return (@units.include?(unit))
   end
