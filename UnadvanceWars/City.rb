@@ -27,6 +27,8 @@ class City
     @timeSum = 0
     @stepBool = true
     @landUnits= [["Infantry", 1000], ["Mech", 3000], ["Recon", 4000], ["APC", 5000], ["Tank", 6000], ["Artillery", 7000], ["AntiAir", 8000], ["Missile", 14000], ["Rocket", 15000], ["MedTank", 16000]]
+    @seaUnits= [["Lander",12000],["Cruiser", 18000],["Submarine",20000],["Battleship", 28000]]
+    @airUnits= [["TChopper",7000],["BChopper",9000],["Fighter", 20000],["Bomber", 22000]]
     @createableUnits
 
     def self.x

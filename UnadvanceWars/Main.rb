@@ -17,7 +17,7 @@ file.rewind
 @cityArr = @field.setupField()
 
 @consoleXCord = @mapx * 50 + 5
-@screen = Screen.open [@mapx * 50 + 175, @mapy *50]
+@screen = Screen.open [@mapx * 50 + 175, @mapy *50 + 25]
 @clock = Clock.new
 @clock.target_framerate = 60
 @clock.enable_tick_events
@@ -37,6 +37,9 @@ end
 #####################smooth, colorArr, baseSize,xCord,yCord)
 @console = Console.new(@consoleXCord,  @mapy *50)
 @sprites << @console
+
+@infoBar = InfoBar.new(@mapy *50)
+@sprites << @infoBar
 
 @event_queue = EventQueue.new
 @event_queue.enable_new_style_events
@@ -227,7 +230,7 @@ def attackableWarMachines(arr,currentPlayer, warMachine) #array of Cords
 end
 
 def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through the list of attackable WMs
-  p("Select The machine you want to attack: cycle (a) left and (d) right, (f) to select")
+  @infoBar.modifyText("Select target: cycle (a) left and (d) right, (f) to select")
   x = 0
   currentWM = attackableWMs.at(x)
   currentWMSpace = @field.getSpace([currentWM.x, currentWM.y])
@@ -278,7 +281,7 @@ def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through t
           unselected = false
 
         else
-          p("Select The machine you want to attack: cycle (a) left and (b) right, (f) to select")
+      #@infoBar.modifyText("Select The machine you want to attack: cycle (a) left and (b) right, (f) to select")
         end
       end
     end
@@ -413,7 +416,7 @@ def movePath(warMachine)
     @sprites << space
   end
 
-  p("Move the War Machine using w,s,a,d and (f) to select")
+  @infoBar.modifyText("Move the War Machine using w,s,a,d and (f) to select")
   tmpField([currentSpace.getCord()])
   while !spotSelected
     updateConsoleLockUnit(currentSpace.terrain,nil,nil)
@@ -521,7 +524,7 @@ def movePath(warMachine)
           spotSelected = true
           spaceArr.concat([currentSpace])
         else
-          p("Move the War Machine using w,s,a,d and (f) to select")
+#@infoBar.modifyText("Move the War Machine using w,s,a,d and (f) to select")
         end
       end
     end
@@ -636,7 +639,8 @@ def selectUnit(currentPlayer)
           end
         elsif(event.key == :f)
           ## ###Causing extra curser glitch?
-          if(warMachine != nil && currentPlayer.isUnit(warMachine) && !warMachine.hasMoved) #is the WM part of the current player?
+          if(currentSpace.occoupiedWM && warMachine != nil && currentPlayer.isUnit(warMachine) && !warMachine.hasMoved) #is the WM part of the current player?
+            p("exit condition was successful")
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
             warMachine = currentSpace.occoupiedWM
@@ -671,7 +675,7 @@ def buildNewUnit(currentPlayer, factory, createableUnits)
   unitSelected = false
   x = 0
   pair = createableUnits.at(x)
-  p("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
+  @infoBar.modifyText("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
   while(!unitSelected)
     
     seconds_passed = @clock.tick().seconds
@@ -688,7 +692,7 @@ def buildNewUnit(currentPlayer, factory, createableUnits)
             x -= 1
           end
           pair = createableUnits.at(x)
-          p("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
+          @infoBar.modifyText("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
         elsif(event.key == :d)
           if(x == createableUnits.length()-1)
             x = 0
@@ -696,7 +700,7 @@ def buildNewUnit(currentPlayer, factory, createableUnits)
             x += 1
           end
           pair = createableUnits.at(x)
-          p("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
+          @infoBar.modifyText("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
         elsif(event.key == :s)
           if(currentPlayer.funds - pair.at(1) > 0)
           newUnit = Kernel.const_get(pair.at(0)).new(factory.y,factory.x,currentPlayer.playerNum)
@@ -731,7 +735,7 @@ end
 
 def deploy(unit, unitToDeploy)
 
-  p("Select the space where you want to deploy: cycle (a) left and (d) right, (f) to select")
+  @infoBar.modifyText("Select the space where you want to deploy: cycle (a) left and (d) right, (f) to select")
   deployableSpaces = deployableSpots(unit.x, unit.y, unitToDeploy.class)
   x = 0
   tmpSpace = deployableSpaces.at(x)
@@ -828,7 +832,7 @@ end
 
 def getCommand(currentPlayer)
   unAnswered = true
-  p("(s)elect unit or (e)nd turn?")
+  @infoBar.modifyText("(s)elect unit or (e)nd turn?")
   while unAnswered
 
     seconds_passed = @clock.tick().seconds
@@ -846,7 +850,7 @@ def getCommand(currentPlayer)
         elsif(event.key == :e)
           unAnswered = false
         else
-          p("(s)elect unit or (e)nd turn?")
+          @infoBar.modifyText("(s)elect unit or (e)nd turn?")
         end
       end
     end
@@ -922,16 +926,15 @@ def genPossibleCommands(warMachine,commandList, currentPlayer)
         end
       end
     end
-
   end
-
+@infoBar.modifyText("(s)elect unit or (e)nd turn?")
   return possibleCommands
 end
 
 def unitAction(warMachine, currentPlayer, previousCords)
   unAnswered = true
   cmdList = genPossibleCommands(warMachine,warMachine.unitCommands,currentPlayer)
-  p(parseCommands(cmdList))
+  @infoBar.modifyText(parseCommands(cmdList))
 
   rangeArr = genRange(warMachine.attackRange, @field.getSpace([warMachine.x, warMachine.y]).getCord)
   for space in rangeArr
@@ -1173,7 +1176,7 @@ def main()
 
     preTurnActions(currentPlayer)
     getCommand(currentPlayer)
-    p(currentPlayer.name + " eneded their turn")
+    @infoBar.modifyText(currentPlayer.name + " eneded their turn")
     setUnitsUnmoved(currentPlayer)
     x = nextPlayerPosition(x)
     currentPlayer =  @listOfP.at(x)
@@ -1188,7 +1191,7 @@ def main()
 
   end
 
-  p(@listOfP.at(0).name + " WINS!")
+  @infoBar.modifyText(@listOfP.at(0).name + " WINS!")
 
 end
 
