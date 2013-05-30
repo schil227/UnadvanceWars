@@ -75,10 +75,17 @@ class City
     when 0
       imageName+= "City.gif"
     when 1
-      imageName+= "Capital.gif"
+      imageName+= "City.gif"
+      setCapital()
     when 2
       imageName+= "Base1.gif"
       @createableUnits =@landUnits
+    when 3
+      imageName+= "Port1.gif"
+      @createableUnits = @seaUnits
+    when 4
+      imageName+= "Airport1.gif"
+      @createableUnits = @airUnits
     end
     return imageName
   end
@@ -88,7 +95,11 @@ class City
     if(@cityLevel < 1)
       @cityLevel = 20
       setOccoupiedPlayer(unit.commander)
+      if(@isCapital)
+        return true
+      end
     end
+    return false
   end
 
   def setCapital()
@@ -110,11 +121,23 @@ class City
         if(@typeNumber == 2 && @occoupiedPlayer != nil)
           @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Base1.gif"
           @image = (Surface.load(@imageName))
+        elsif(@typeNumber == 3 && @occoupiedPlayer != nil)
+          @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Port1.gif"
+          @image = (Surface.load(@imageName))
+        elsif(@typeNumber == 4 && @occoupiedPlayer != nil)
+          @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Airport1.gif"
+          @image = (Surface.load(@imageName))
         end
         ##add more cases HERE
       else
         if(@typeNumber == 2 && @occoupiedPlayer != nil)
           @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Base2.gif"
+          @image = (Surface.load(@imageName))
+        elsif(@typeNumber == 3 && @occoupiedPlayer != nil)
+          @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Port2.gif"
+          @image = (Surface.load(@imageName))
+        elsif(@typeNumber == 4 && @occoupiedPlayer != nil)
+          @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Airport2.gif"
           @image = (Surface.load(@imageName))
         end
         ##add more cases HERE

@@ -55,7 +55,7 @@ p1Units = [
   recon1 = Recon.new(2,8,1),
   mech1 = Mech.new(2,9,1),
   apc = APC.new(6,8,1),
-  lan = Lander.new(6,11,1)
+  lan = Lander.new(6,11,1),
 ]
 
 p2Units = [
@@ -69,6 +69,7 @@ p2Units = [
   sub = Submarine.new(2,11,2),
   recon = Recon.new(3,9,2),
   mech = Mech.new(1,9,2),
+  mech2 = Mech.new(2,18,2),
 ]
 
 player1 = Player.new("uno",1)
@@ -140,6 +141,20 @@ def destoryOffScreenUnit(warMachine, currentPlayer)
   end
   warMachine.destroyed()
   currentPlayer.removeUnit(warMachine)
+end
+
+def destroyAllUnits(commander)
+  unitLength = commander.units.length
+
+#  print("dah units: ")
+#  for unit in units
+#    print (unit.class.to_s() +  " ")
+#  end
+  
+  for i in 0 .. unitLength-1
+    destroy(commander.units.at(0),commander)
+#    print (unit.class.to_s() +  " ")
+  end
 end
 
 def calcDamage(attacker, attacked)
@@ -281,7 +296,7 @@ def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through t
           unselected = false
 
         else
-      #@infoBar.modifyText("Select The machine you want to attack: cycle (a) left and (b) right, (f) to select")
+          #@infoBar.modifyText("Select The machine you want to attack: cycle (a) left and (b) right, (f) to select")
         end
       end
     end
@@ -524,7 +539,7 @@ def movePath(warMachine)
           spotSelected = true
           spaceArr.concat([currentSpace])
         else
-#@infoBar.modifyText("Move the War Machine using w,s,a,d and (f) to select")
+          #@infoBar.modifyText("Move the War Machine using w,s,a,d and (f) to select")
         end
       end
     end
@@ -668,7 +683,7 @@ end
 
 def isOpenFactory(space,currentPlayer)
   terrain = space.terrain#check type for different buildings too, also tmpOcc may not matter, cant recall =]
-  return (terrain.class == City && terrain.occoupiedPlayer == currentPlayer && terrain.typeNumber == 2 && space.occoupiedWM == nil && space.tmpOccoupiedWM == nil)
+  return (terrain.class == City && terrain.occoupiedPlayer == currentPlayer && (terrain.typeNumber == 2 || terrain.typeNumber == 3 ||  terrain.typeNumber == 4) && space.occoupiedWM == nil && space.tmpOccoupiedWM == nil)
 end
 
 def buildNewUnit(currentPlayer, factory, createableUnits)
@@ -677,7 +692,7 @@ def buildNewUnit(currentPlayer, factory, createableUnits)
   pair = createableUnits.at(x)
   @infoBar.modifyText("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
   while(!unitSelected)
-    
+
     seconds_passed = @clock.tick().seconds
     update(seconds_passed)
     @event_queue.each do |event|
@@ -702,16 +717,16 @@ def buildNewUnit(currentPlayer, factory, createableUnits)
           pair = createableUnits.at(x)
           @infoBar.modifyText("<=(a)  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " (d)=>, (s) to select")
         elsif(event.key == :s)
-          if(currentPlayer.funds - pair.at(1) > 0)
-          newUnit = Kernel.const_get(pair.at(0)).new(factory.y,factory.x,currentPlayer.playerNum)
-          currentPlayer.addUnits([newUnit])
-          @sprites << newUnit
-          @field.addWM(newUnit)
-          newUnit.setHasMoved()
-          p("current players funds: " + currentPlayer.funds.to_s)
-          currentPlayer.decreaseFunds(pair.at(1))
-          p("current players funds now: " + currentPlayer.funds.to_s)
-          unitSelected = true
+          if(currentPlayer.funds - pair.at(1) >= 0)
+            newUnit = Kernel.const_get(pair.at(0)).new(factory.y,factory.x,currentPlayer.playerNum)
+            currentPlayer.addUnits([newUnit])
+            @sprites << newUnit
+            @field.addWM(newUnit)
+            newUnit.setHasMoved()
+            p("current players funds: " + currentPlayer.funds.to_s)
+            currentPlayer.decreaseFunds(pair.at(1))
+            p("current players funds now: " + currentPlayer.funds.to_s)
+            unitSelected = true
           end
         elsif(event.key == :x)
           unitSelected = true
@@ -903,7 +918,7 @@ def genPossibleCommands(warMachine,commandList, currentPlayer)
     if(commandList.include?("capture"))
       terrain = @field.getSpace([warMachine.x, warMachine.y]).terrain
       if( terrain.class == City)
-        if((warMachine.class == (Infantry  ||  Mech)) && terrain.occoupiedPlayer != warMachine.commander)
+        if(((warMachine.class == Infantry  ||  warMachine.class == Mech)) && terrain.occoupiedPlayer != warMachine.commander)
           possibleCommands.concat(["capture"])
         end
       end
@@ -927,7 +942,6 @@ def genPossibleCommands(warMachine,commandList, currentPlayer)
       end
     end
   end
-@infoBar.modifyText("(s)elect unit or (e)nd turn?")
   return possibleCommands
 end
 
@@ -1052,7 +1066,11 @@ def unitAction(warMachine, currentPlayer, previousCords)
               space.toggleIsCursor()
               @sprites.delete(space)
             end
-            terrain.conquer(warMachine)
+            commanderUnderSiege = terrain.occoupiedPlayer
+            isCapital = terrain.conquer(warMachine)
+            if(isCapital)
+              destroyAllUnits(commanderUnderSiege)
+            end
             warMachine.setHasMoved()
             unAnswered = false
           end
@@ -1072,6 +1090,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
       end
     end
   end
+  @infoBar.modifyText("(s)elect unit or (e)nd turn?")
   updateConsole(nil,nil,nil,nil)
 end
 
