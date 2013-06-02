@@ -5,6 +5,7 @@ class Player
     @units = []
     @isTurn = false
     @funds = 20000
+    @numOwnedCities = 0
     
     def self.funds
       @funds
@@ -21,8 +22,25 @@ class Player
     def self.units
       @units
     end
+    
+    def self.numOwnedCities
+      @numOwnedCities
+    end
+    
   end
 
+  def incNumOwnedCities
+    @numOwnedCities += 1
+  end
+  
+  def decNumOwnedCities
+    @numOwnedCities -= 1
+  end
+  
+  def acquireFunds()
+    @funds += (100 * @numOwnedCities)
+  end
+  
   def decreaseFunds(expense)
     @funds = @funds - expense
   end

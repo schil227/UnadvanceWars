@@ -75,7 +75,7 @@ class City
     when 0
       imageName+= "City.gif"
     when 1
-      imageName+= "City.gif"
+      imageName+= "Capital1.gif"
       setCapital()
     when 2
       imageName+= "Base1.gif"
@@ -91,8 +91,10 @@ class City
   end
 
   def conquer(unit)
+    playerUnderSiege = @occoupiedPlayer
     @cityLevel -= unit.health
     if(@cityLevel < 1)
+      playerUnderSiege.decNumOwnedCities()
       @cityLevel = 20
       setOccoupiedPlayer(unit.commander)
       if(@isCapital)
@@ -109,6 +111,7 @@ class City
 
   def setOccoupiedPlayer(commander)
     @occoupiedPlayer = commander
+    commander.incNumOwnedCities()
     @imageName = setImageName(commander.playerNum,@typeNumber)
     @image = (Surface.load(@imageName))
   end
@@ -118,7 +121,10 @@ class City
     if(@timeSum >= 5)
       @timeSum = 0
       if(@stepBool)
-        if(@typeNumber == 2 && @occoupiedPlayer != nil)
+        if(@typeNumber == 1 && @occoupiedPlayer != nil)
+          @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Capital1.gif"
+          @image = (Surface.load(@imageName))
+        elsif(@typeNumber == 2 && @occoupiedPlayer != nil)
           @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Base1.gif"
           @image = (Surface.load(@imageName))
         elsif(@typeNumber == 3 && @occoupiedPlayer != nil)
@@ -130,7 +136,10 @@ class City
         end
         ##add more cases HERE
       else
-        if(@typeNumber == 2 && @occoupiedPlayer != nil)
+        if(@typeNumber == 1 && @occoupiedPlayer != nil)
+          @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Capital2.gif"
+          @image = (Surface.load(@imageName))
+        elsif(@typeNumber == 2 && @occoupiedPlayer != nil)
           @imageName = "data/p" + @occoupiedPlayer.playerNum.to_s + "Base2.gif"
           @image = (Surface.load(@imageName))
         elsif(@typeNumber == 3 && @occoupiedPlayer != nil)

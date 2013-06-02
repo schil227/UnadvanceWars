@@ -9,91 +9,94 @@ require 'rubygame'
 
 include Rubygame
 
-file = File.open("data/map1.txt",'r')
-@mapx = file.read.count("\n")
-file.rewind
-@mapy = file.readline().size - 1
-@field = Field.new(@mapx, @mapy) #x & y are flipped D:
-@cityArr = @field.setupField()
+def setup()
+  file = File.open("data/map1.txt",'r')
+  @mapx = file.read.count("\n")
+  file.rewind
+  @mapy = file.readline().size - 1
+  @field = Field.new(@mapx, @mapy) #x & y are flipped D:
+  @cityArr = @field.setupField()
 
-@consoleXCord = @mapx * 50 + 5
-@screen = Screen.open [@mapx * 50 + 175, @mapy *50 + 25]
-@clock = Clock.new
-@clock.target_framerate = 60
-@clock.enable_tick_events
-@background = Surface.load "data/background.png"
-@background.blit @screen, [ 0, 0]
+  @consoleXCord = @mapx * 50 + 5
+  @screen = Screen.open [@mapx * 50 + 175, @mapy *50 + 25]
+  @clock = Clock.new
+  @clock.target_framerate = 60
+  @clock.enable_tick_events
+  @background = Surface.load "data/background.png"
+  @background.blit @screen, [ 0, 0]
 
-Sound.autoload_dirs = [ File.dirname(__FILE__) ]
-@explosionSound = Sound['data/explosion.wav']
-@explosionSound.volume = 0.25
+  Sound.autoload_dirs = [ File.dirname(__FILE__) ]
+  @explosionSound = Sound['data/explosion.wav']
+  @explosionSound.volume = 0.25
 
-@sprites = Sprites::Group.new
-Sprites::UpdateGroup.extend_object @sprites
+  @sprites = Sprites::Group.new
+  Sprites::UpdateGroup.extend_object @sprites
 
-for space in @field.sfield
-  @sprites.concat([space.terrain])
-end
-#####################smooth, colorArr, baseSize,xCord,yCord)
-@console = Console.new(@consoleXCord,  @mapy *50)
-@sprites << @console
-
-@infoBar = InfoBar.new(@mapy *50)
-@sprites << @infoBar
-
-@event_queue = EventQueue.new
-@event_queue.enable_new_style_events
-p1Units = [
-  mTank = MedTank.new(5,5,1),
-  art = Artillery.new(2,3,1),
-  tank2 = Tank.new(0,4,1),
-  inf = Infantry.new(6,7,1),
-  chop = BChopper.new(5,8,1),
-  bat = Battleship.new(3,11,1),
-  bomb = Bomber.new(3,7,1),
-  crsr = Cruiser.new(3,10,1),
-  recon1 = Recon.new(2,8,1),
-  mech1 = Mech.new(2,9,1),
-  apc = APC.new(6,8,1),
-  lan = Lander.new(6,11,1),
-]
-
-p2Units = [
-  mTank2 = MedTank.new(6,5,2),
-  tank = Tank.new(1,3,2),
-  art2 = Artillery.new(0,1,2),
-  art3 = Artillery.new(1,1,2),
-  rocket = Rocket.new(0,2,2),
-  aa = AntiAir.new(1,6,2),
-  fgtr = Fighter.new(2,14,2),
-  sub = Submarine.new(2,11,2),
-  recon = Recon.new(3,9,2),
-  mech = Mech.new(1,9,2),
-  mech2 = Mech.new(2,18,2),
-]
-
-player1 = Player.new("uno",1)
-player2 = Player.new("dos",2)
-
-@listOfP = [player1,player2]
-
-for city in @cityArr
-  if(city.initialCommanderNumber != 0) #if 0 then unconqured city
-    city.setOccoupiedPlayer(@listOfP.at(city.initialCommanderNumber-1)) #number is adjusted for the list  location
+  for space in @field.sfield
+    @sprites.concat([space.terrain])
   end
-end
+  #####################smooth, colorArr, baseSize,xCord,yCord)
+  @console = Console.new(@consoleXCord,  @mapy *50)
+  @sprites << @console
 
-player1.addUnits(p1Units)
-player2.addUnits(p2Units)
+  @infoBar = InfoBar.new(@mapy *50)
+  @sprites << @infoBar
 
-for u in player1.units
-  @field.addWM(u)
-  @sprites << u
-end
+  @event_queue = EventQueue.new
+  @event_queue.enable_new_style_events
+  p1Units = [
+    mTank = MedTank.new(5,5,1),
+    art = Artillery.new(2,3,1),
+    tank2 = Tank.new(0,4,1),
+    inf = Infantry.new(6,7,1),
+    chop = BChopper.new(5,8,1),
+    bat = Battleship.new(3,11,1),
+    bomb = Bomber.new(3,7,1),
+    crsr = Cruiser.new(3,10,1),
+    recon1 = Recon.new(2,8,1),
+    mech1 = Mech.new(2,9,1),
+    apc = APC.new(6,8,1),
+    lan = Lander.new(6,11,1),
+  ]
 
-for u in player2.units
-  @field.addWM(u)
-  @sprites << u
+  p2Units = [
+    mTank2 = MedTank.new(6,5,2),
+    tank = Tank.new(1,3,2),
+    art2 = Artillery.new(0,1,2),
+    art3 = Artillery.new(1,1,2),
+    rocket = Rocket.new(0,2,2),
+    aa = AntiAir.new(1,6,2),
+    fgtr = Fighter.new(2,14,2),
+    sub = Submarine.new(2,11,2),
+    recon = Recon.new(3,9,2),
+    mech = Mech.new(1,9,2),
+    mech2 = Mech.new(2,18,2),
+  ]
+
+  player1 = Player.new("uno",1)
+  player2 = Player.new("dos",2)
+
+  @listOfP = [player1,player2]
+
+  for city in @cityArr
+    if(city.initialCommanderNumber != 0) #if 0 then unconqured city
+      city.setOccoupiedPlayer(@listOfP.at(city.initialCommanderNumber-1)) #number is adjusted for the list  location
+    end
+  end
+
+  player1.addUnits(p1Units)
+  player2.addUnits(p2Units)
+
+  for u in player1.units
+    @field.addWM(u)
+    @sprites << u
+  end
+
+  for u in player2.units
+    @field.addWM(u)
+    @sprites << u
+  end
+
 end
 
 ###Combat###
@@ -145,15 +148,8 @@ end
 
 def destroyAllUnits(commander)
   unitLength = commander.units.length
-
-#  print("dah units: ")
-#  for unit in units
-#    print (unit.class.to_s() +  " ")
-#  end
-  
   for i in 0 .. unitLength-1
     destroy(commander.units.at(0),commander)
-#    print (unit.class.to_s() +  " ")
   end
 end
 
@@ -586,7 +582,7 @@ def selectUnit(currentPlayer)
   currentSpace.toggleIsCursor()
   @sprites << currentSpace
   warMachine = nil
-  puts("Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select or (x) to cancel")
+  @infoBar.modifyText("Select a unit. move:(w,s,a,d), select:(f), goBack:(x)")
   #@field.printField
   while !spotSelected
     seconds_passed = @clock.tick().seconds
@@ -671,7 +667,7 @@ def selectUnit(currentPlayer)
           warMachine = nil
           spotSelected = true
         else
-          puts("Else Select a unit to move: use w,s,a,d to control up, down, left, right and (f) to select or (x) to cancel")
+          @infoBar.modifyText("Select a unit. move:(w,s,a,d), select:(f), goBack:(x)")
         end
 
       end
@@ -851,7 +847,14 @@ def getCommand(currentPlayer)
   while unAnswered
 
     seconds_passed = @clock.tick().seconds
-
+    for player in @listOfP
+      if player.units.empty?
+        @listOfP.delete(player)
+      end
+    end
+    if(@listOfP.length == 1)
+      unAnswered = false
+    end
     @event_queue.each do |event|
       case event
       when Events::KeyPressed
@@ -861,6 +864,8 @@ def getCommand(currentPlayer)
             currentCords = wM.getCord()
             move(wM, movePath(wM)) #Generates the movement for unit/moves and sets unit
             unitAction(wM,currentPlayer,currentCords) #takes the updated unit (new position) and asks what it'll do
+          else
+            @infoBar.modifyText("(s)elect unit or (e)nd turn?")
           end
         elsif(event.key == :e)
           unAnswered = false
@@ -1137,6 +1142,8 @@ end
 
 def preTurnActions(player) # does various things that occur before a turn, such as heal units
   terrain = nil
+  player.acquireFunds()
+  p("current funds: " + player.funds.to_s)
   for unit in player.units
     terrain = @field.getSpace([unit.x, unit.y]).terrain
     if( terrain.class == City)
@@ -1177,6 +1184,7 @@ def updateConsoleLockUnit(terrain,target,damagePercentage)
 end
 
 def main()
+  setup()
   x = 0
   currentPlayer = @listOfP.at(x)
 
@@ -1195,23 +1203,36 @@ def main()
 
     preTurnActions(currentPlayer)
     getCommand(currentPlayer)
-    @infoBar.modifyText(currentPlayer.name + " eneded their turn")
-    setUnitsUnmoved(currentPlayer)
-    x = nextPlayerPosition(x)
-    currentPlayer =  @listOfP.at(x)
-    p("the next player is " + currentPlayer.name)
-    for player in @listOfP
-      if player.units.empty?
-        @listOfP.delete(player)
+    if(@listOfP.length() != 1) #this may cause issues later on when there are more players added
+      @infoBar.modifyText(currentPlayer.name + " eneded their turn")
+      setUnitsUnmoved(currentPlayer)
+      x = nextPlayerPosition(x)
+      currentPlayer =  @listOfP.at(x)
+      p("the next player is " + currentPlayer.name)
+      for player in @listOfP
+        if player.units.empty?
+          @listOfP.delete(player)
+        end
       end
     end
-
     update(seconds_passed)
 
   end
 
   @infoBar.modifyText(@listOfP.at(0).name + " WINS!")
+  unAnswered = false
+  while !unAnswered
 
+    seconds_passed = @clock.tick().seconds
+    update(seconds_passed)
+    @event_queue.each do |event|
+      case event
+      #ADD QUIT EVENT
+      when Events::KeyPressed
+        unAnswered = true
+      end
+    end
+  end
 end
 
 =begin
