@@ -93,4 +93,19 @@ puts("list at 0: " + lilList.at(0))
 pair = @landUnitPrices.at(3)
 p("<=a  Unit: "+ pair.at(0) + "  Cost: "+ pair.at(1).to_s + " b=>")
 
-p((t.class == MedTank).to_s)
+
+closeArr = [['a',3],['b',4],['c',1],['d',2],['e',5]]
+  
+p(closeArr.sort{|x,y| x.at(1) <=> y.at(1)})
+    
+p(closeArr.last)
+
+for arr in closeArr
+  p(arr)
+  if(arr.at(1) == 1)
+  break
+  end
+end
+
+  
+  p(closeArr.length())

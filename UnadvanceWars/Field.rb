@@ -22,18 +22,18 @@ class Field
     end
   end
 
-  def setupField()
+  def setupField(map)
     for i in 0..(@x-1) do
       for j in 0..(@y-1)
         @sfield.concat([Space.new(i,j)])
         
       end
     end
-    return setupTerrain()
+    return setupTerrain(map)
   end
 
-  def setupTerrain
-    file = File.open("data/map1.txt",'r')
+  def setupTerrain(map)
+    file = File.open(map,'r')
     terrainArray=[]
     cityArr=[]
     for line in file

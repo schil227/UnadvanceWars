@@ -9,13 +9,14 @@ require 'rubygame'
 
 include Rubygame
 
-def setup()
-  file = File.open("data/map1.txt",'r')
+def setup(useUnits)
+  map = "data/map1.txt"
+  file = File.open(map,'r')
   @mapx = file.read.count("\n")
   file.rewind
   @mapy = file.readline().size - 1
   @field = Field.new(@mapx, @mapy) #x & y are flipped D:
-  @cityArr = @field.setupField()
+  @cityArr = @field.setupField(map)
 
   @consoleXCord = @mapx * 50 + 5
   @screen = Screen.open [@mapx * 50 + 175, @mapy *50 + 25]
@@ -29,6 +30,22 @@ def setup()
   @explosionSound = Sound['data/explosion.wav']
   @explosionSound.volume = 0.25
 
+  @superThemeMusic =  Music.load('data/marchOfTheSOD.mp3')
+  @superThemeMusic.volume = 0.25
+  #@superThemeMusic.play(:repeats => -1)
+
+  #  @superThemeMusic.play()
+  #  @musicThread = Thread.new{
+  #    while true
+  #      if(!@superThemeMusic.playing?)
+  #        @superThemeMusic.play
+  #      end
+  #      sleep(1)
+  #    end
+  #  }
+  #  @musicThread.priority = -1
+  #
+  #  @musicThread.join()
   @sprites = Sprites::Group.new
   Sprites::UpdateGroup.extend_object @sprites
 
@@ -44,48 +61,50 @@ def setup()
 
   @event_queue = EventQueue.new
   @event_queue.enable_new_style_events
-  p1Units = [
-    mTank = MedTank.new(5,5,1),
-    art = Artillery.new(2,3,1),
-    tank2 = Tank.new(0,4,1),
-    inf = Infantry.new(6,7,1),
-    chop = BChopper.new(5,8,1),
-    bat = Battleship.new(3,11,1),
-    bomb = Bomber.new(3,7,1),
-    crsr = Cruiser.new(3,10,1),
-    recon1 = Recon.new(2,8,1),
-    mech1 = Mech.new(2,9,1),
-    apc = APC.new(6,8,1),
-    lan = Lander.new(6,11,1),
-  ]
 
-  p2Units = [
-    mTank2 = MedTank.new(6,5,2),
-    tank = Tank.new(1,3,2),
-    art2 = Artillery.new(0,1,2),
-    art3 = Artillery.new(1,1,2),
-    rocket = Rocket.new(0,2,2),
-    aa = AntiAir.new(1,6,2),
-    fgtr = Fighter.new(2,14,2),
-    sub = Submarine.new(2,11,2),
-    recon = Recon.new(3,9,2),
-    mech = Mech.new(1,9,2),
-    mech2 = Mech.new(2,18,2),
-  ]
-
-  player1 = Player.new("uno",1)
-  player2 = Player.new("dos",2)
+  player1 = Player.new("RED",1)
+  player2 = Player.new("BLUE",2)
 
   @listOfP = [player1,player2]
+
+  if(useUnits)
+    p1Units = [
+      mTank = MedTank.new(5,5,1),
+      art = Artillery.new(2,3,1),
+      tank2 = Tank.new(0,4,1),
+      inf = Infantry.new(6,7,1),
+      chop = BChopper.new(5,8,1),
+      bat = Battleship.new(3,11,1),
+      bomb = Bomber.new(3,7,1),
+      crsr = Cruiser.new(3,10,1),
+      recon1 = Recon.new(2,8,1),
+      mech1 = Mech.new(2,9,1),
+      apc = APC.new(6,8,1),
+      lan = Lander.new(6,11,1),
+    ]
+
+    p2Units = [
+      mTank2 = MedTank.new(6,5,2),
+      tank = Tank.new(1,3,2),
+      art2 = Artillery.new(0,1,2),
+      art3 = Artillery.new(1,1,2),
+      rocket = Rocket.new(0,2,2),
+      aa = AntiAir.new(1,6,2),
+      fgtr = Fighter.new(2,14,2),
+      sub = Submarine.new(2,11,2),
+      recon = Recon.new(3,9,2),
+      mech = Mech.new(1,9,2),
+      mech2 = Mech.new(2,18,2),
+    ]
+    player1.addUnits(p1Units)
+    player2.addUnits(p2Units)
+  end
 
   for city in @cityArr
     if(city.initialCommanderNumber != 0) #if 0 then unconqured city
       city.setOccoupiedPlayer(@listOfP.at(city.initialCommanderNumber-1)) #number is adjusted for the list  location
     end
   end
-
-  player1.addUnits(p1Units)
-  player2.addUnits(p2Units)
 
   for u in player1.units
     @field.addWM(u)
@@ -344,6 +363,112 @@ def genSpaceMovement(space, mvmt, spaceArr, warMachine)
   return spaceArr.uniq()
 end
 
+def optimizeMovePath(startSpace, moveRange, endSpace, unit)
+  #generate list of all spaces which include end space, parent/child node structure!
+  #select shortest from the path which gets there first
+  startNode = PathNode.new(nil, startSpace, moveRange)
+  allNodesPassed= [startNode.currentNode]
+  currentNodes = [startNode]
+  if(startNode.currentNode == endSpace)
+    return startNode
+  end
+  return optimizeMovePathRecursion(currentNodes, allNodesPassed, endSpace, unit)
+end
+
+def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpace, unit)
+  pathSolutions = []
+  newNodes = []
+  for parentNode in currentNodes
+    spaces = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining , unit)
+    p("found " + spaces.size.to_s + " space(s)")
+    for space in spaces
+      if(!allSpacesPassed.include?(space.currentNode)) 
+        p("space not in all spaces yet!")
+        allSpacesPassed.push(space.currentNode)
+        newNodes.push(space)
+
+        if space.currentNode == endSpace
+          pathSolutions.push(space)
+        end
+      end
+    end
+  end
+ # p("found all currentNodes. size: " + currentNodes.size.to_s)
+  if(!pathSolutions.empty?)
+    p("solutions is not empty")
+    solution = pathSolutions.at(0)
+    for path in pathSolutions
+      if path.movementRemaining > solution.movementRemaining
+        solution = path
+      end
+    end
+    p("found a solution path!")
+    return solution
+  end
+  newNodes = newNodes.uniq {|n| n.currentNode} #should not be necessairy
+  
+  return optimizeMovePathRecursion(newNodes, allSpacesPassed, endSpace, unit)
+end
+
+def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine)
+  parentSpace = parentPathNode.currentNode
+    nSpace = @field.getSpace([parentSpace.x-1, parentSpace.y])
+    sSpace = @field.getSpace([parentSpace.x+1, parentSpace.y])
+    eSpace = @field.getSpace([parentSpace.x, parentSpace.y+1])
+    wSpace = @field.getSpace([parentSpace.x, parentSpace.y-1])
+  
+    #(space.occoupiedWM && space.occoupiedWM != warMachine)
+    #&& !space.occoupiedWM
+  
+    tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
+  p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s)
+  p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
+  applicableSpaceArr = []
+  for space in tmpSpaceArr
+    p("trying a new space")
+    if(space != nil && mvmt > 0)
+      if((space.movement <= mvmt ||(warMachine.isFlying && 1 <= mvmt)) && mvmt > space.spaceMvmt && \
+      !( (space.occoupiedWM && (space.occoupiedWM.commander != warMachine.commander)) \
+      || (space.terrain.class == Mountain && (warMachine.class != (Infantry || Mech) && !warMachine.isFlying)) \
+      || (space.terrain.class == Sea && (!warMachine.isFlying && !warMachine.isSailing)) \
+      || (space.terrain.class != Sea && space.terrain.class != Shoal && warMachine.isSailing)))
+        p("found a space!")
+       # space.setSpaceMvmt(mvmt)
+        if(warMachine.isFlying)
+          p("Adding a tmpNode, mvmt:" + (mvmt - 1).to_s)
+          tmpPathNode = PathNode.new(parentPathNode,space,mvmt - 1)
+          applicableSpaceArr.push(tmpPathNode)
+        else
+          p("Adding a tmpNode, mvmt:" + (mvmt - space.movement).to_s)
+          tmpPathNode = PathNode.new(parentPathNode,space,mvmt - space.movement)
+          applicableSpaceArr.push(tmpPathNode)
+        end
+
+      end
+    end
+  end
+  p("returning spaces")
+  return applicableSpaceArr
+end
+
+def genPathFromNodes(pathNode, spaceArr) ## done creating opt. path and gen path, now to implement and test!
+  spaceArr.push(pathNode.currentNode)
+  if(pathNode.parentPathNode == nil)
+    return spaceArr
+  else
+    return genPathFromNodes(pathNode.parentPathNode,spaceArr)
+  end
+end
+
+def calcClosestSpace(spaceArr, endSpace)
+  tmpDistanceArr = []
+  for space in spaceArr
+    distance = Math.sqrt(((endSpace.y - space.y).abs)^2 + ((endSpace.x - space.x).abs)^2)
+    tmpDistanceArr.push([space, distance])
+  end
+  return tmpDistanceArr.sort{|x,y| x.at(1) <=> y.at(1)}
+end
+
 def move(warMachine, spaces) #animation, setting/unsetting spaces
   timeSum = 0
   moving = true
@@ -420,12 +545,14 @@ def movePath(warMachine)
   tmpSpace = nil
   spotSelected = false
   x = 0
-
+  p("before gen move range")
   tmpArr = genMoveRange(warMachine)
   for space in tmpArr
     space.toggleIsCursor()
     @sprites << space
   end
+  
+  p("after gen move range")
 
   @infoBar.modifyText("Move the War Machine using w,s,a,d and (f) to select")
   tmpField([currentSpace.getCord()])
@@ -550,7 +677,14 @@ def movePath(warMachine)
     @sprites.delete(space)
   end
 
-  return spaceArr
+  theMovementPath = genPathFromNodes(optimizeMovePath(originalSpace,warMachine.movement,currentSpace,warMachine), [])
+  p("here's the movement pathXXXXXXXXXXXXXXXXXXXXXX: ")
+  for space in theMovementPath
+    print(space.getCord().to_s + ",")
+  end
+  p("XXXXXXXXXXXXXXXXXXXXX")
+#move(warMachine,theMovementPath.reverse)
+  return theMovementPath.reverse
 end
 
 #################Mechanics###########################################
@@ -605,48 +739,57 @@ def selectUnit(currentPlayer)
       when Events::KeyPressed
         puts("keypressed " + event.to_s)
         if(event.key == :s)
+
           tmpSpace = @field.getSpace([currentSpace.x+1, currentSpace.y]) ##Down
           if (tmpSpace == nil )
             p("DNE")
           else
+
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
             currentSpace = tmpSpace
             currentSpace.toggleIsCursor()
             @sprites << currentSpace
+            p(currentSpace.getCord)
           end
         elsif(event.key == :w)
           tmpSpace = @field.getSpace([currentSpace.x-1, currentSpace.y]) ##Up
           if (tmpSpace == nil )
             p("DNE")
           else
+
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
             currentSpace = tmpSpace
             currentSpace.toggleIsCursor()
             @sprites << currentSpace
+            p(currentSpace.getCord)
           end
         elsif(event.key == :a)
           tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y-1]) ##Left
           if (tmpSpace == nil )
             p("DNE")
           else
+
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
             currentSpace = tmpSpace
             currentSpace.toggleIsCursor()
             @sprites << currentSpace
+            p(currentSpace.getCord)
           end
         elsif(event.key == :d)
           tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y+1]) ##Right
           if (tmpSpace == nil )
             p("DNE")
           else
+
             currentSpace.toggleIsCursor()
             @sprites.delete(currentSpace)
             currentSpace = tmpSpace
             currentSpace.toggleIsCursor()
             @sprites << currentSpace
+            p(currentSpace.getCord)
           end
         elsif(event.key == :f)
           ## ###Causing extra curser glitch?
@@ -1184,7 +1327,7 @@ def updateConsoleLockUnit(terrain,target,damagePercentage)
 end
 
 def main()
-  setup()
+  setup(true)
   x = 0
   currentPlayer = @listOfP.at(x)
 

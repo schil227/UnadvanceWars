@@ -94,7 +94,9 @@ class City
     playerUnderSiege = @occoupiedPlayer
     @cityLevel -= unit.health
     if(@cityLevel < 1)
-      playerUnderSiege.decNumOwnedCities()
+      if(playerUnderSiege != nil)
+        playerUnderSiege.decNumOwnedCities()
+      end
       @cityLevel = 20
       setOccoupiedPlayer(unit.commander)
       if(@isCapital)
