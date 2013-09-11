@@ -96,6 +96,7 @@ class City
     if(@cityLevel < 1)
       if(playerUnderSiege != nil)
         playerUnderSiege.decNumOwnedCities()
+        playerUnderSiege.removeCityCord(@space.getCord)
       end
       @cityLevel = 20
       setOccoupiedPlayer(unit.commander)

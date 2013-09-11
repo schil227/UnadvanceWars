@@ -34,7 +34,7 @@ class Fighter
     @isDirect = true;
     @isDestroyed = false;
     @hasMoved = false
-    @commander = nil #FOR ATTACK TABLE, SHOULD GIVE CHOPPER AMMO BACK IF ATTACKING CHOPPER OR INF (MG)
+    @commander = nil 
     @attackTable = {'b' => 1.00, 'T' => 1.00, 'F' => 0.55, 'P' => 1.00}
     @ammo = 9
     @fuel = 99

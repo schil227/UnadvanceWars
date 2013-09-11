@@ -63,13 +63,13 @@ def setup(useUnits)
   @event_queue.enable_new_style_events
 
   player1 = Player.new("RED",1)
-  player2 = Player.new("BLUE",2)
+  player2 = AI.new("BLUE",2, 1)
 
   @listOfP = [player1,player2]
 
   if(useUnits)
     p1Units = [
-      mTank = MedTank.new(5,5,1),
+      mTank = MedTank.new(7,8,1),
       art = Artillery.new(2,3,1),
       tank2 = Tank.new(0,4,1),
       inf = Infantry.new(6,7,1),
@@ -102,7 +102,9 @@ def setup(useUnits)
 
   for city in @cityArr
     if(city.initialCommanderNumber != 0) #if 0 then unconqured city
-      city.setOccoupiedPlayer(@listOfP.at(city.initialCommanderNumber-1)) #number is adjusted for the list  location
+      player = @listOfP.at(city.initialCommanderNumber-1)
+      city.setOccoupiedPlayer(player) #number is adjusted for the list  location
+      player.cityCords << city.space.getCord
     end
   end
 
@@ -181,6 +183,7 @@ def calcDamage(attacker, attacked)
       attackPower = attacker.secondaryAttackTable[attacked.symb] * (attacker.power)
     end
   else
+    p("couldnt attack!")
     return 0
   end
   return (attackPower - @field.getSpace(attacked.getCord).defence*((attackPower*(0.1)) - (attackPower * 0.01 * (10 - attacked.health))))
@@ -201,6 +204,17 @@ def explosion(x,y)
     end
   end
   @sprites.delete(explosion)
+end
+
+def simulateAttack(attacker, attacked)
+  score = 0
+  score = score + calcDamage(attacker,attacked)
+  attacked.decHealth(calcDamage(attacker,attacked))
+  p("The score is:" + score.round.to_s)
+  if(attacked.health > 0 && attacker.isDirect && attacked.isDirect)
+    score = score - calcDamage(attacked,attacker)
+  end
+  return score
 end
 
 def genRange(attackRange, spot)
@@ -271,8 +285,8 @@ def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through t
 
   while unselected
     updateConsoleLockUnit(currentWMSpace.terrain,currentWM,calcDamage(warMachine,currentWM))
-    p("warM: " + warMachine.class.to_s + " currentWM: " + currentWM.class.to_s)
-    p("warM ammo : " + warMachine.ammo.to_s)
+    # p("warM: " + warMachine.class.to_s + " currentWM: " + currentWM.class.to_s)
+    # p("warM ammo : " + warMachine.ammo.to_s)
     seconds_passed = @clock.tick().seconds
     update(seconds_passed)
     @event_queue.each do |event|
@@ -319,6 +333,26 @@ def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through t
   return currentWM
 end
 
+def genAttackRange(warMachine)
+  attackRange = genMoveRange(warMachine)
+  newSpots = []
+
+  for spot in attackRange
+    newSpots.concat(getNeighboringSpaces(spot)) #my lazyness knows no bounds
+  end
+
+  p("attackrange before add:" + attackRange.length.to_s)
+  for spot in newSpots
+    if(spot != nil)
+      attackRange << spot
+    end
+  end
+  attackRange = attackRange.uniq()
+  p("attackrange after:" + attackRange.length.to_s)
+
+  return attackRange
+end
+
 ###Movement###
 
 def genMoveRange(warMachine)
@@ -330,6 +364,16 @@ def genMoveRange(warMachine)
     space.resetSpaceMvmt
   end
   return spaceArr.uniq()
+end
+
+def getNeighboringSpaces(space)
+
+  nSpace = @field.getSpace([space.x-1, space.y])
+  sSpace = @field.getSpace([space.x+1, space.y])
+  eSpace = @field.getSpace([space.x, space.y+1])
+  wSpace = @field.getSpace([space.x, space.y-1])
+
+  return [nSpace, sSpace, eSpace, wSpace]
 end
 
 def genSpaceMovement(space, mvmt, spaceArr, warMachine)
@@ -382,7 +426,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpace, unit)
     spaces = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining , unit)
     p("found " + spaces.size.to_s + " space(s)")
     for space in spaces
-      if(!allSpacesPassed.include?(space.currentNode)) 
+      if(!allSpacesPassed.include?(space.currentNode))
         p("space not in all spaces yet!")
         allSpacesPassed.push(space.currentNode)
         newNodes.push(space)
@@ -393,7 +437,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpace, unit)
       end
     end
   end
- # p("found all currentNodes. size: " + currentNodes.size.to_s)
+  # p("found all currentNodes. size: " + currentNodes.size.to_s)
   if(!pathSolutions.empty?)
     p("solutions is not empty")
     solution = pathSolutions.at(0)
@@ -406,21 +450,21 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpace, unit)
     return solution
   end
   newNodes = newNodes.uniq {|n| n.currentNode} #should not be necessairy
-  
+
   return optimizeMovePathRecursion(newNodes, allSpacesPassed, endSpace, unit)
 end
 
 def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine)
   parentSpace = parentPathNode.currentNode
-    nSpace = @field.getSpace([parentSpace.x-1, parentSpace.y])
-    sSpace = @field.getSpace([parentSpace.x+1, parentSpace.y])
-    eSpace = @field.getSpace([parentSpace.x, parentSpace.y+1])
-    wSpace = @field.getSpace([parentSpace.x, parentSpace.y-1])
-  
-    #(space.occoupiedWM && space.occoupiedWM != warMachine)
-    #&& !space.occoupiedWM
-  
-    tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
+  nSpace = @field.getSpace([parentSpace.x-1, parentSpace.y])
+  sSpace = @field.getSpace([parentSpace.x+1, parentSpace.y])
+  eSpace = @field.getSpace([parentSpace.x, parentSpace.y+1])
+  wSpace = @field.getSpace([parentSpace.x, parentSpace.y-1])
+
+  #(space.occoupiedWM && space.occoupiedWM != warMachine)
+  #&& !space.occoupiedWM
+
+  tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
   p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s)
   p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
   applicableSpaceArr = []
@@ -433,7 +477,7 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine)
       || (space.terrain.class == Sea && (!warMachine.isFlying && !warMachine.isSailing)) \
       || (space.terrain.class != Sea && space.terrain.class != Shoal && warMachine.isSailing)))
         p("found a space!")
-       # space.setSpaceMvmt(mvmt)
+        # space.setSpaceMvmt(mvmt)
         if(warMachine.isFlying)
           p("Adding a tmpNode, mvmt:" + (mvmt - 1).to_s)
           tmpPathNode = PathNode.new(parentPathNode,space,mvmt - 1)
@@ -551,7 +595,7 @@ def movePath(warMachine)
     space.toggleIsCursor()
     @sprites << space
   end
-  
+
   p("after gen move range")
 
   @infoBar.modifyText("Move the War Machine using w,s,a,d and (f) to select")
@@ -572,30 +616,30 @@ def movePath(warMachine)
           tmpSpace = @field.getSpace([currentSpace.x+1, currentSpace.y])
           if(tmpArr.include?(tmpSpace))
             currentSpace.toggleIsCursor()
-            @sprites.delete(currentSpace)
+            #@sprites.delete(currentSpace)
             currentSpace = tmpSpace
             currentSpace.toggleIsCursor()
-            @sprites << currentSpace
+            # @sprites << currentSpace
           end
         elsif(event.key == :w)#259
           warMachine.setHasMoved()
           tmpSpace = @field.getSpace([currentSpace.x-1, currentSpace.y])
           if(tmpArr.include?(tmpSpace))
             currentSpace.toggleIsCursor()
-            @sprites.delete(currentSpace)
+            #@sprites.delete(currentSpace)
             currentSpace = tmpSpace
             currentSpace.toggleIsCursor()
-            @sprites << currentSpace
+            # @sprites << currentSpace
           end
         elsif(event.key == :a)#260
           warMachine.setHasMoved()
           tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y-1])
           if(tmpArr.include?(tmpSpace))
             currentSpace.toggleIsCursor()
-            @sprites.delete(currentSpace)
+            #@sprites.delete(currentSpace)
             currentSpace = tmpSpace
             currentSpace.toggleIsCursor()
-            @sprites << currentSpace
+            # @sprites << currentSpace
           end
         elsif(event.key == :d)#261
 =begin
@@ -652,10 +696,10 @@ def movePath(warMachine)
           tmpSpace = @field.getSpace([currentSpace.x, currentSpace.y+1])
           if(tmpArr.include?(tmpSpace))
             currentSpace.toggleIsCursor()
-            @sprites.delete(currentSpace)
+            #@sprites.delete(currentSpace)
             currentSpace = tmpSpace
             currentSpace.toggleIsCursor()
-            @sprites << currentSpace
+            # @sprites << currentSpace
           end
 
         elsif(event.key == :f)
@@ -683,8 +727,69 @@ def movePath(warMachine)
     print(space.getCord().to_s + ",")
   end
   p("XXXXXXXXXXXXXXXXXXXXX")
-#move(warMachine,theMovementPath.reverse)
+  #move(warMachine,theMovementPath.reverse)
   return theMovementPath.reverse
+end
+
+################# A I ###############
+
+def selectBest(attacker, attackableUnits)
+  scores = []
+  p("selecting the best target:")
+  for target in attackableUnits
+    attackerClone = attacker.clone
+    targetClone = target.clone
+    score = simulateAttack(attackerClone, targetClone).round
+    p("the score is: " + score.to_s + " for unit " + target.class.to_s)
+    scores << KeyValuePair.new(target,score)
+  end
+  p("looked at all the targets")
+  sortedScores = scores.sort!{|a,b| b.value <=> a.value}
+  return sortedScores.at(Random.rand(2) % attackableUnits.length).key #produces random unit choice
+end
+
+def findBestAttackPoint(unit, target, movementArr)
+  p("finding best spots")
+  neighboringSpaces = getNeighboringSpaces(@field.getSpace(target.getCord))
+  p("got neighboring spaces")
+  attackPoints = neighboringSpaces & movementArr #intersection
+  p("found intersection")
+  sortedAttackPoints = attackPoints.sort!{|a,b| a.defence <=> b.defence }
+  p("neighboringSpaces:" + neighboringSpaces.length.to_s + " moveArr:" + movementArr.length.to_s + " intersection:" + attackPoints.length.to_s)
+  return sortedAttackPoints.at(Random.rand(2) % sortedAttackPoints.length)
+end
+
+def attackUnit(unit, currentPlayer)
+  if(!unit.isDirect)
+    attackableUnitSpaces = attackableWarMachines(genRange(unit.attackRange,unit.getCord),currentPlayer, unit)
+    if(!attackableUnitSpaces.empty?)
+      attackableUnits = []
+      for warMachine in attackableUnitSpaces
+        attackableUnits << warMachine
+      end
+      p("getting target")
+      target = selectBest(unit, attackableUnits)
+      attack(unit, target, currentPlayer)
+    end
+
+  else #genAttackRange
+    p("unit is direct")
+    attackableUnitSpaces = attackableWarMachines(genAttackRange(unit),currentPlayer, unit)
+
+    if(!attackableUnitSpaces.empty?)
+      attackableUnits = []
+      for warMachine in attackableUnitSpaces
+        attackableUnits << warMachine
+      end
+      p("getting target")
+      target = selectBest(unit, attackableUnits)
+      p("getting target space")
+      targetSpace = findBestAttackPoint(unit, target,genMoveRange(unit))
+      p("going to move")
+      move(unit, genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,targetSpace,unit),[]).reverse)
+      attack(unit, target, currentPlayer)
+    end
+  end
 end
 
 #################Mechanics###########################################
@@ -1332,6 +1437,10 @@ def main()
   currentPlayer = @listOfP.at(x)
 
   preTurnActions(currentPlayer)
+  #  theRocket = Rocket.new(0,2,2) For testing how well the path finder is
+  #  @sprites << theRocket
+  #  @listOfP.at(1).addUnits([theRocket])
+  #  move(theRocket, genPathFromNodes(optimizeMovePath(@field.getSpace(theRocket.getCord),99,@field.getSpace([1,18]),theRocket),[]))
 
   while (@listOfP.length() != 1)
 
@@ -1343,9 +1452,19 @@ def main()
         should_run = false
       end
     end
+    if(currentPlayer.class.to_s != "AI")
 
-    preTurnActions(currentPlayer)
-    getCommand(currentPlayer)
+      preTurnActions(currentPlayer)
+      getCommand(currentPlayer)
+    else
+      sortedUnits = currentPlayer.units.sort{|a,b| b.cost <=> a.cost }
+      for unit in sortedUnits
+        p("The current unit:" + unit.class.to_s)
+
+        attackUnit(unit, currentPlayer)
+
+      end
+    end
     if(@listOfP.length() != 1) #this may cause issues later on when there are more players added
       @infoBar.modifyText(currentPlayer.name + " eneded their turn")
       setUnitsUnmoved(currentPlayer)

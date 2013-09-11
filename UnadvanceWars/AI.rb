@@ -1,16 +1,20 @@
-class Player
-  def initialize(name, num)
+class AI
+  #The begining of the end.
+  #oh, Fuck me this'll be a trial.
+  def initialize(name, num, difficulty)
     @name = name
     @playerNum = num
     @units = []
     @isTurn = false
     @funds = 20000
     @numOwnedCities = 0
+    @difficulty = difficulty
     @cityCords =[]
+    
     def self.cityCords
       @cityCords
     end
-
+      
     def self.funds
       @funds
     end
@@ -31,8 +35,16 @@ class Player
       @numOwnedCities
     end
 
+    def self.difficulty
+      @difficulty
+    end
+    
   end
 
+  def removeCityCord(cord)
+     @cityCords.delete(cord)
+   end
+  
   def incNumOwnedCities
     @numOwnedCities += 1
   end
@@ -53,7 +65,7 @@ class Player
     return (@units.include?(unit))
   end
 
-  def addUnits(unitArray) ###CHANGE TO THIS INSTANCE INSTED OF PASSING PLAYER
+  def addUnits(unitArray)
     @units.concat(unitArray)
 
     for unit in unitArray
@@ -73,10 +85,6 @@ class Player
     @units.collect{|unit| unit.class}
   end
 
-  def removeCityCord(cord)
-    @cityCords.delete(cord)
-  end
-
   def hasUnusedUnits()
     for n in @units
       if(!n.hasMoved)
@@ -85,5 +93,4 @@ class Player
     end
     return false
   end
-
 end

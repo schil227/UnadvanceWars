@@ -143,7 +143,7 @@ class Space
     if(@isCursor || @tmpspace)
       @image = (Surface.load "data/cursor.gif")
     else
-      @image = (Surface.load "data/blank.gif")
+      @image = (Surface.load "data/cursorX.gif") #blank.gif
     end
     @rect.topleft = [50*@y,50*@x]
   end
