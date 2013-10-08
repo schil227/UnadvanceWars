@@ -43,6 +43,11 @@ class Mech
     @isSailing = false
     @cost = 3000
     @unitCommands = ['attack','wait','join','capture']
+    @isCapturing = false
+
+    def self.isCapturing
+      @isCapturing
+    end
 
     def self.unitCommands
       @unitCommands
@@ -129,6 +134,14 @@ class Mech
   def decHealth(num)
     @health = @health-num
     @power = 10*(@health *0.1)
+  end
+
+  def startedCapturing()
+    @isCapturing = true
+  end
+
+  def stoppedCapturing()
+    @isCapturing = true
   end
 
   def restockFuel()

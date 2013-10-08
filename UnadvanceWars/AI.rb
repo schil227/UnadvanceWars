@@ -9,12 +9,11 @@ class AI
     @funds = 20000
     @numOwnedCities = 0
     @difficulty = difficulty
-    @cityCords =[]
-    
-    def self.cityCords
-      @cityCords
+    @citySpaces =[]
+    def self.citySpaces
+      @citySpaces
     end
-      
+
     def self.funds
       @funds
     end
@@ -38,13 +37,17 @@ class AI
     def self.difficulty
       @difficulty
     end
-    
+
   end
 
-  def removeCityCord(cord)
-     @cityCords.delete(cord)
-   end
-  
+  def addCitySpace(space)
+    @citySpaces << space
+  end
+
+  def removeCitySpace(space)
+    @citySpaces.delete(space)
+  end
+
   def incNumOwnedCities
     @numOwnedCities += 1
   end

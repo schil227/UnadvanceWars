@@ -6,9 +6,9 @@ class Player
     @isTurn = false
     @funds = 20000
     @numOwnedCities = 0
-    @cityCords =[]
-    def self.cityCords
-      @cityCords
+    @citySpaces =[]
+    def self.citySpaces
+      @citySpaces
     end
 
     def self.funds
@@ -73,8 +73,12 @@ class Player
     @units.collect{|unit| unit.class}
   end
 
-  def removeCityCord(cord)
-    @cityCords.delete(cord)
+  def addCitySpace(space)
+    @citySpaces << space
+  end
+  
+  def removeCitySpace(space)
+    @citySpaces.delete(space)
   end
 
   def hasUnusedUnits()

@@ -43,6 +43,11 @@ class Infantry
     @isSailing = false
     @cost = 1000
     @unitCommands = ['attack','wait','join','capture']
+    @isCapturing = false
+
+    def self.isCapturing
+      @isCapturing
+    end
 
     def self.unitCommands
       @unitCommands
@@ -119,6 +124,14 @@ class Infantry
     def self.isDestroyed
       @isDestroyed
     end
+  end
+
+  def startedCapturing()
+    @isCapturing = true
+  end
+
+  def stoppedCapturing()
+    @isCapturing = true
   end
 
   def incHealth(num)

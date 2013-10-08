@@ -39,6 +39,9 @@ class City
       @y
     end
 
+    def self.cityLevel
+      @cityLevel
+    end
     def self.createableUnits
       @createableUnits
     end
@@ -65,6 +68,10 @@ class City
 
     def self.typeNumber
       @typeNumber
+    end
+
+    def self.space
+      @space
     end
 
   end
@@ -94,12 +101,14 @@ class City
     playerUnderSiege = @occoupiedPlayer
     @cityLevel -= unit.health
     if(@cityLevel < 1)
+
       if(playerUnderSiege != nil)
         playerUnderSiege.decNumOwnedCities()
-        playerUnderSiege.removeCityCord(@space.getCord)
+        playerUnderSiege.removeCitySpace(@space)
       end
       @cityLevel = 20
       setOccoupiedPlayer(unit.commander)
+      unit.commander.addCitySpace(@space)
       if(@isCapital)
         return true
       end
