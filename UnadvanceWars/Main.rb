@@ -73,7 +73,7 @@ def setup(useUnits)
       art = Artillery.new(2,3,1),
       tank2 = Tank.new(0,4,1),
       inf = Infantry.new(6,7,1),
-      chop = BChopper.new(5,8,1),
+      chop = BChopper.new(5,18,1),
       bat = Battleship.new(3,11,1),
       bomb = Bomber.new(4,5,1),
       crsr = Cruiser.new(3,10,1),
@@ -84,16 +84,16 @@ def setup(useUnits)
     ]
 
     p2Units = [
-      mTank2 = MedTank.new(6,1,2),
-      tank = Tank.new(1,3,2),
-      art2 = Artillery.new(0,1,2),
-      art3 = Artillery.new(1,1,2),
-      rocket = Rocket.new(0,2,2),
-      aa = AntiAir.new(1,6,2),
+#      mTank2 = MedTank.new(6,1,2),
+#      tank = Tank.new(1,3,2),
+#      art2 = Artillery.new(0,1,2),
+#      art3 = Artillery.new(1,1,2),
+#      rocket = Rocket.new(0,2,2),
+#      aa = AntiAir.new(1,6,2),
       #fgtr = Fighter.new(2,14,2),
       #      sub = Submarine.new(2,11,2),
-      recon = Recon.new(3,9,2),
-      mech = Mech.new(1,9,2),
+#      recon = Recon.new(3,9,2),
+#      mech = Mech.new(1,9,2),
       mech2 = Mech.new(2,18,2),
     ]
     player1.addUnits(p1Units)
@@ -455,6 +455,11 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit)
       spaceFound = true
       p("found a solution path!")
     end
+    if(currentNodes.empty?)
+      solution = nil
+      spaceFound = true
+      p("Could not find a path!!!")
+    end
     newNodes = newNodes.uniq {|n| n.currentNode} #should not be necessairy
     currentNodes = newNodes
   end
@@ -505,6 +510,9 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine)
 end
 
 def genPathFromNodes(pathNode, spaceArr) ## done creating opt. path and gen path, now to implement and test!
+  if(pathNode  == nil) #when no spot is found; empty path set
+    return spaceArr
+  end
   curNode = pathNode
   spaceArr.push(curNode.currentNode)
   while(curNode.parentPathNode != nil)
@@ -803,10 +811,13 @@ def attackUnit(unit, currentPlayer)
   end
 end
 
+
 def retreat(unit, citySpaces)
   p("retreating!")
   pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, citySpaces, unit),[]).reverse
-  p("found the city!")
+  if(pathToCity.size > 0)
+    
+    p("found the city!")
   unitPath = []
   mvmt = unit.movement
   i = 0
@@ -847,6 +858,9 @@ def retreat(unit, citySpaces)
     move(unit, unitPath)
   end
   p("done retreating")
+  else #Can't find a 
+    
+  end
 end
 
 def dropSpacesWithUnitsWhenJoining(unitPath) #necessairy?
