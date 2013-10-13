@@ -84,16 +84,16 @@ def setup(useUnits)
     ]
 
     p2Units = [
-#      mTank2 = MedTank.new(6,1,2),
-#      tank = Tank.new(1,3,2),
-#      art2 = Artillery.new(0,1,2),
-#      art3 = Artillery.new(1,1,2),
-#      rocket = Rocket.new(0,2,2),
-#      aa = AntiAir.new(1,6,2),
+      #      mTank2 = MedTank.new(6,1,2),
+      #      tank = Tank.new(1,3,2),
+      #      art2 = Artillery.new(0,1,2),
+      #      art3 = Artillery.new(1,1,2),
+      #      rocket = Rocket.new(0,2,2),
+      #      aa = AntiAir.new(1,6,2),
       #fgtr = Fighter.new(2,14,2),
       #      sub = Submarine.new(2,11,2),
-#      recon = Recon.new(3,9,2),
-#      mech = Mech.new(1,9,2),
+      #      recon = Recon.new(3,9,2),
+      #      mech = Mech.new(1,9,2),
       mech2 = Mech.new(2,18,2),
     ]
     player1.addUnits(p1Units)
@@ -519,8 +519,8 @@ def genPathFromNodes(pathNode, spaceArr) ## done creating opt. path and gen path
     curNode = curNode.parentPathNode
     spaceArr.push(curNode.currentNode)
   end
+  #spaceArr.shift
   return spaceArr
-
 end
 
 def calcClosestSpace(spaceArr, endSpace)
@@ -811,55 +811,54 @@ def attackUnit(unit, currentPlayer)
   end
 end
 
-
 def retreat(unit, citySpaces)
   p("retreating!")
   pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, citySpaces, unit),[]).reverse
   if(pathToCity.size > 0)
-    
+
     p("found the city!")
-  unitPath = []
-  mvmt = unit.movement
-  i = 0
-  p("The class of the pathToCity:" + pathToCity.class.to_s)
-  p("The class of the first element:" + pathToCity.at(0).class.to_s)
-  p("the array size: "+ pathToCity.size.to_s)
-  p("spaces in unitPath:")
-  pathToCity.shift #pops off the first element (home square)
-  for space in unitPath
-    print(space.class.to_s + ", ")
-  end
-  while mvmt > 0 #this basically gets the unit as far as it can get on the whole path
-    if(i >= pathToCity.size)
-      mvmt = 0
-    else
-      citySpace = pathToCity.at(i)
-      if (citySpace.terrain.movement <= mvmt || (unit.isFlying && mvmt > 0))
-        p("gonna add the space, mvmt:" + mvmt.to_s + ", spaceMvmt:" + citySpace.terrain.movement.to_s)
-        unitPath << pathToCity.at(i)
-        if(unit.isFlying)
-          mvmt = mvmt - 1
-        else
-          mvmt = mvmt - citySpace.terrain.movement
-        end
-        i = i + 1
-      else
-        p("not gonna add the space")
+    unitPath = []
+    mvmt = unit.movement
+    i = 0
+    p("The class of the pathToCity:" + pathToCity.class.to_s)
+    p("The class of the first element:" + pathToCity.at(0).class.to_s)
+    p("the array size: "+ pathToCity.size.to_s)
+    p("spaces in unitPath:")
+    pathToCity.shift #pops off the first element (home square)
+    for space in unitPath
+      print(space.class.to_s + ", ")
+    end
+    while mvmt > 0 #this basically gets the unit as far as it can get on the whole path
+      if(i >= pathToCity.size)
         mvmt = 0
+      else
+        citySpace = pathToCity.at(i)
+        if (citySpace.terrain.movement <= mvmt || (unit.isFlying && mvmt > 0))
+          p("gonna add the space, mvmt:" + mvmt.to_s + ", spaceMvmt:" + citySpace.terrain.movement.to_s)
+          unitPath << pathToCity.at(i)
+          if(unit.isFlying)
+            mvmt = mvmt - 1
+          else
+            mvmt = mvmt - citySpace.terrain.movement
+          end
+          i = i + 1
+        else
+          p("not gonna add the space")
+          mvmt = 0
+        end
       end
     end
-  end
-  p("path to city size:" + pathToCity.size.to_s + ", unitPath size:" + unitPath.size.to_s)
+    p("path to city size:" + pathToCity.size.to_s + ", unitPath size:" + unitPath.size.to_s)
 
-  if(unitPath.size > 0)
+    if(unitPath.size > 0)
       unitPath = dropSpacesWithUnits(unitPath)
-  end
-  if(unitPath.size > 0)
-    move(unit, unitPath)
-  end
-  p("done retreating")
-  else #Can't find a 
-    
+    end
+    if(unitPath.size > 0)
+      move(unit, unitPath)
+    end
+    p("done retreating")
+  else #Can't find a
+
   end
 end
 
@@ -872,11 +871,63 @@ def dropSpacesWithUnits(unitPath)
   i = unitPath.size-1
   while(unitPath.size>0  && unitPath.at(i).occoupiedWM != nil) #if size is one, then were're on the spot of our current wm
     p("found a unit and size>0. i:" + i.to_s)
-    unitPath = unitPath[0...-1] #drops last unit  
+    unitPath = unitPath[0...-1] #drops last unit
     i = unitPath.size-1
   end
   p("after unitPath size:"+ unitPath.size.to_s)
   return unitPath
+end
+
+def nearEnemyBuilding(unit)
+  buildingIsNear = false
+  spaceArr = genMoveRange(unit)
+  for space in spaceArr
+    if(space.terrain.class == City && space.terrain.occoupiedPlayer != unit.commander && space.occoupiedWM == nil)
+      buildingIsNear = true
+    end
+  end
+  p("spaces found? " + buildingIsNear.to_s)
+  return buildingIsNear
+end
+
+def getEnemyBuildingsInArea(unit)
+  spaceArr = genMoveRange(unit)
+  buildingSpaces = []
+  for space in spaceArr
+    if(space.terrain.class == City && space.terrain.occoupiedPlayer != unit.commander && space.occoupiedWM == nil)
+      buildingSpaces << space
+    end
+  end
+  return buildingSpaces
+end
+
+def getAllEnemyBuildings(currentCommander, allCommanders)
+  enemyCities=[]
+  for commander in allCommanders
+    if(commander != currentCommander)
+      enemyCities.concat(commander.citySpaces)
+    end
+  end
+  return enemyCities
+end
+
+def tryCapturing(unit)
+  p("getting the city path")
+  pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, getEnemyBuildingsInArea(unit), unit),[]).reverse
+  p("got city path, moving")
+  move(unit, pathToCity)
+  p("moved, capping")
+  terrain = pathToCity.last.terrain
+  commanderUnderSiege = terrain.occoupiedPlayer
+  isCapital = terrain.conquer(unit)
+  if(isCapital)
+    destroyAllUnits(commanderUnderSiege)
+  end
+end
+
+def goToEnemyCity(unit) #I've become so lazy. Well, I should refactor the retreat method to be more general,
+  #but still, this is unforgivable =D
+  retreat(unit, getAllEnemyBuildings(unit.commander, @listOfP))
 end
 
 #################Mechanics###########################################
@@ -1543,26 +1594,37 @@ def main()
     if(currentPlayer.class.to_s != "AI")
       getCommand(currentPlayer)
     else
+
       ######### A I Implementation ####
       sortedUnits = currentPlayer.units.sort{|a,b| b.cost <=> a.cost }
       for unit in sortedUnits
         p("The current unit:" + unit.class.to_s)
-
+        didAction = false
         #If already capturing, keep capturing
-        if((unit.class == Mech || unit.class == Infantry) && @field.getSpace(unit.getCord).terrain.class == City && @field.getSpace(unit.getCord).terrain.cityLevel < 20 )
+        if(!didAction && (unit.class == Mech || unit.class == Infantry) && @field.getSpace(unit.getCord).terrain.class == City && @field.getSpace(unit.getCord).terrain.occoupiedPlayer != unit.commander && @field.getSpace(unit.getCord).terrain.cityLevel < 20 )
           terrain = @field.getSpace(unit.getCord).terrain
           commanderUnderSiege = terrain.occoupiedPlayer
           isCapital = terrain.conquer(unit)
           if(isCapital)
             destroyAllUnits(commanderUnderSiege)
           end
-        end
-        if(unit.health < 4)
+          didAction = true
+        elsif(!didAction && (unit.class == Mech || unit.class == Infantry) && nearEnemyBuilding(unit) )
+          tryCapturing(unit)
+          didAction = true
+        #the next part needs to be rethought-perhapse a 'pick a choice and stick with it' attribute for WMs
+        #otherwise they would just always cap or attack or retreat =(
+        elsif(!didAction && (unit.class == Mech || unit.class == Infantry))
+          goToEnemyCity(unit)
+        elsif(!didAction && unit.health < 4)
           retreat(unit, currentPlayer.citySpaces)
-        else
+          didAction = true
+        elsif(!didAction)
           attackUnit(unit, currentPlayer)
+          didAction = true
         end
       end
+
     end
     if(@listOfP.length() > 1)
       @infoBar.modifyText(currentPlayer.name + " eneded their turn")
