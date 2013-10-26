@@ -930,6 +930,28 @@ def goToEnemyCity(unit) #I've become so lazy. Well, I should refactor the retrea
   retreat(unit, getAllEnemyBuildings(unit.commander, @listOfP))
 end
 
+def unitNeedsSupply(unit)
+  wm = nil
+  for space in genMoveRange(unit)
+    wm = space.occoupiedWM
+    if wm != nil
+      
+    end
+  end
+end
+
+def deliverUnitToCity(unit)
+
+end
+
+def supplyNearbyUnit(unit)
+
+end
+
+def findInf(unit)
+  
+end
+
 #################Mechanics###########################################
 
 def tmpField(cords)
@@ -1612,10 +1634,20 @@ def main()
         elsif(!didAction && (unit.class == Mech || unit.class == Infantry) && nearEnemyBuilding(unit) )
           tryCapturing(unit)
           didAction = true
-        #the next part needs to be rethought-perhapse a 'pick a choice and stick with it' attribute for WMs
-        #otherwise they would just always cap or attack or retreat =(
-        elsif(!didAction && (unit.class == Mech || unit.class == Infantry))
+          #the next part needs to be rethought-perhapse a 'pick a choice and stick with it' attribute for WMs
+          #otherwise they would just always cap or attack or retreat =(
+        elsif(!didAction && (unit.class == Mech || unit.class == Infantry)) #and no good attack outcomes!!!
           goToEnemyCity(unit)
+          didAction = true
+        elsif(!didAction && unit.class == APC)
+          if(unit.convoyedUnit != nil)
+            deliverUnitToCity(unit)
+          elsif(unitNeedsSupply(unit))
+            supplyNearbyUnit(unit)
+          else
+            findInf(unit)
+          end
+          didAction = true
         elsif(!didAction && unit.health < 4)
           retreat(unit, currentPlayer.citySpaces)
           didAction = true

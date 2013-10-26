@@ -153,7 +153,7 @@ class Infantry
   end
 
   def restockAmmo()
-    @ammo = 99
+    @ammo = 0
   end
 
   def decAmmo()
