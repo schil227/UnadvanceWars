@@ -37,8 +37,10 @@ class BChopper
     @commander = nil #FOR ATTACK TABLE, SHOULD GIVE CHOPPER AMMO BACK IF ATTACKING CHOPPER OR INF (MG)
     @attackTable = {'r' => 0.55, 't' => 0.55, 'M' => 0.25, 'p' => 0.65, 'a' => 0.65, 'R' => 0.65, 'A' => 0.25, 's' => 0.65, 'L' => 0.25, 'C' => 0.55, 'S' => 0.25, 'B' => 0.25}
     @secondaryAttackTable = {'i' => 0.75, 'm' => 0.75, 'r' => 0.30, 't' => 0.06, 'M' => 0.01, 'p' => 0.20, 'a' => 0.25, 'R' => 0.35, 'A' => 0.06, 's' => 0.35, 'b'=> 0.65, 'T' => 0.95 }
-    @ammo = 6
-    @fuel = 99
+    @ammo = 6 
+	 @maxammo = 6
+    @fuel = 99 
+	 @maxFuel = 99
     @isSailing = false
     @cost = 9000
     @unitCommands = ['attack','wait']
@@ -63,12 +65,20 @@ class BChopper
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def decTurnFuel()
       @fuel = @fuel - 2
     end
 
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
@@ -143,7 +153,8 @@ class BChopper
   end
 
   def restockAmmo()
-    @ammo = 6
+    @ammo = 6 
+	 @maxammo = 6
   end
 
   def decAmmo()

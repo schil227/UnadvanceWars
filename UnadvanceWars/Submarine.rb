@@ -35,8 +35,10 @@ class Submarine
     @hasMoved = false
     @commander = nil
     @attackTable = {'L' => 0.95, 'C' => 0.25, 'S' => 0.55, 'B' => 0.55}
-    @ammo = 6
-    @fuel = 60
+    @ammo = 6 
+	 @maxammo = 6
+    @fuel = 60 
+	 @maxFuel = 60
     @isFlying = false
     @isSailing = true
     @submerged = false
@@ -67,6 +69,10 @@ class Submarine
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def decTurnFuel()
       if(!@submerged)
         @fuel = @fuel - 1
@@ -77,6 +83,10 @@ class Submarine
 
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
@@ -151,7 +161,8 @@ class Submarine
   end
 
   def restockAmmo()
-    @ammo = 6
+    @ammo = 6 
+	 @maxammo = 6
   end
 
   def decAmmo()

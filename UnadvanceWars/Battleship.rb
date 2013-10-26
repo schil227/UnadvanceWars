@@ -35,8 +35,10 @@ class Battleship
     @hasMoved = false
     @commander = nil
     @attackTable = {'i' => 0.95, 'm' => 0.90, 'r' => 0.90 ,'t' => 0.85, 'M' => 0.55, 'p' => 0.80, 'a' => 0.80, 'R' => 0.85, 'A' => 0.85, 's' => 0.90, 'L' => 0.95, 'C'=> 0.95, 'S' => 0.95, 'B' => 0.50 }
-    @ammo = 9
-    @fuel = 99
+    @ammo = 9 
+	 @maxammo = 9
+    @fuel = 99 
+	 @maxFuel = 99
     @isFlying = false
     @isSailing = true
     @cost = 35000
@@ -62,12 +64,20 @@ class Battleship
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def decTurnFuel()
       @fuel = @fuel - 1
     end
 
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable

@@ -35,8 +35,10 @@ class Missile
     @hasMoved = false
     @commander = nil
     @attackTable = {'b' => 1.20, 'T' => 1.20, 'F' => 1.00, 'P' => 1.00}
-    @ammo = 6
-    @fuel = 50
+    @ammo = 6 
+	 @maxammo = 6
+    @fuel = 50 
+	 @maxFuel = 50
     @isFlying = false
     @isSailing = false
     @cost = 12000
@@ -62,8 +64,16 @@ class Missile
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
@@ -134,7 +144,8 @@ class Missile
   end
 
   def restockAmmo()
-    @ammo = 6
+    @ammo = 6 
+	 @maxammo = 6
   end
 
   def decAmmo()

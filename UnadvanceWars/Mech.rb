@@ -37,8 +37,10 @@ class Mech
     @commander = nil
     @attackTable = {'r' => 0.85, 't' => 0.55, 'M' => 0.15, 'p' => 0.75, 'a' => 0.70, 'R' => 0.85, 'A' => 0.65, 's'=> 0.85}
     @secondaryAttackTable = {'i' => 0.65, 'm' => 0.55, 'r' => 0.18,'t' => 0.06, 'M' => 0.01, 'p' => 0.20, 'a' => 0.32, 'R' => 0.35, 'A' => 0.06, 's' => 0.35, 'b'=> 0.09 , 'T' =>0.35 }
-    @ammo = 3
-    @fuel = 70
+    @ammo = 3 
+	 @maxammo = 3
+    @fuel = 70 
+	 @maxFuel = 70
     @isFlying = false
     @isSailing = false
     @cost = 3000
@@ -69,8 +71,16 @@ class Mech
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable

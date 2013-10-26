@@ -36,8 +36,10 @@ class Fighter
     @hasMoved = false
     @commander = nil 
     @attackTable = {'b' => 1.00, 'T' => 1.00, 'F' => 0.55, 'P' => 1.00}
-    @ammo = 9
-    @fuel = 99
+    @ammo = 9 
+	 @maxammo = 9
+    @fuel = 99 
+	 @maxFuel = 99
     @isSailing = false
     @cost = 20000
     @unitCommands = ['attack','wait']
@@ -62,12 +64,20 @@ class Fighter
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def decTurnFuel()
       @fuel = @fuel - 2
     end
 
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
@@ -134,7 +144,8 @@ class Fighter
   end
 
   def restockFuel()
-    @ammo = 99
+    @ammo = 9 
+	 @maxammo = 99
   end
 
   def decFuel(num)

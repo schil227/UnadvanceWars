@@ -35,8 +35,10 @@ class Rocket
     @hasMoved = false
     @commander = nil
     @attackTable = {'i' => 0.95, 'm' => 0.90, 'r' => 0.90, 't' => 0.85, 'M' => 0.55, 'p' => 0.80, 'a' => 0.80, 'R' => 0.85, 'A' => 0.85, 's' =>0.90, 'L' => 0.60, 'C' => 0.85, 'S' =>0.85, 'B' => 0.55 }
-    @ammo = 6
-    @fuel = 50
+    @ammo = 6 
+	 @maxammo = 6
+    @fuel = 50 
+	 @maxFuel = 50
     @isFlying = false
     @isSailing = false
     @cost = 14000
@@ -62,8 +64,16 @@ class Rocket
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
@@ -134,7 +144,8 @@ class Rocket
   end
 
   def restockAmmo()
-    @ammo = 6
+    @ammo = 6 
+	 @maxammo = 6
   end
 
   def decAmmo()

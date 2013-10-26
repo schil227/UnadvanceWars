@@ -36,8 +36,10 @@ class Bomber
     @hasMoved = false
     @commander = nil 
     @attackTable = {'i' => 1.10, 'm' => 1.10, 'r' => 1.05, 't' => 1.05, 'M' => 0.95, 'p' => 1.05, 'a' => 1.05, 'R' => 1.05, 'A' => 0.95, 's' => 1.05, 'L' => 0.95, 'C' => 0.85, 'S' =>0.95, 'B' => 0.75}
-    @ammo = 9
-    @fuel = 99
+    @ammo = 9 
+	 @maxammo = 9
+    @fuel = 99 
+	 @maxFuel = 99
     @isSailing = false
     @cost = 22000
     @unitCommands = ['attack','wait']
@@ -62,12 +64,20 @@ class Bomber
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def decTurnFuel()
       @fuel = @fuel - 2
     end
 
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
@@ -131,7 +141,8 @@ class Bomber
   end
 
   def restockFuel()
-    @ammo = 99
+    @ammo = 9 
+	 @maxammo = 99
   end
 
   def decFuel(num)

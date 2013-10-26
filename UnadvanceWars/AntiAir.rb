@@ -35,8 +35,10 @@ class AntiAir
     @hasMoved = false
     @commander = nil
     @attackTable = {'i' => 1.05, 'm' => 1.05, 'r' => 0.60, 't' => 0.25, 'M' => 0.10, 'p' => 0.50, 'a' => 0.50, 'R' => 0.45, 'A' => 0.45, 's' => 0.50, 'b' => 1.20, 'T' =>1.20, 'F'=>0.65, 'P' => 0.75}
-    @ammo = 9
-    @fuel = 60
+    @ammo = 9 
+	 @maxammo = 9
+    @fuel = 60 
+	 @maxFuel = 60
     @isFlying = false
     @isSailing = false
     @cost = 8000
@@ -62,8 +64,16 @@ class AntiAir
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
@@ -134,7 +144,8 @@ class AntiAir
   end
 
   def restockAmmo()
-    @ammo = 9
+    @ammo = 9 
+	 @maxammo = 9
   end
 
   def decAmmo()

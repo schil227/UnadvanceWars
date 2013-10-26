@@ -36,8 +36,10 @@ class Cruiser
     @commander = nil
     @attackTable = {'S' => 0.90}
     @secondaryAttackTable = {'b' => 1.15, 'T' => 1.15, 'F' => 0.55, 'P' => 0.65 }
-    @ammo = 9
-    @fuel = 60
+    @ammo = 9 
+	 @maxammo = 9
+    @fuel = 60 
+	 @maxFuel = 60
     @isFlying = false
     @isSailing = true
     @cost = 18000
@@ -63,12 +65,20 @@ class Cruiser
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def decTurnFuel()
       @fuel = @fuel - 1
     end
 
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable

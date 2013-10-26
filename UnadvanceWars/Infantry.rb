@@ -37,8 +37,10 @@ class Infantry
     @commander = nil
     @attackTable = {}
     @secondaryAttackTable = {'i' => 0.55, 'm' => 0.45, 'r' => 0.12, 't' => 0.05, 'M' => 0.01, 'p' => 0.14, 'a' => 0.15, 'R' => 0.25, 'A' => 0.05, 's' => 0.25, 'b'=> 0.07, 'T' => 0.30}
-    @ammo = 0
-    @fuel = 99
+    @ammo = 0 
+	 @maxammo = 0
+    @fuel = 99 
+	 @maxFuel = 99
     @isFlying = false
     @isSailing = false
     @cost = 1000
@@ -69,8 +71,16 @@ class Infantry
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
@@ -153,7 +163,8 @@ class Infantry
   end
 
   def restockAmmo()
-    @ammo = 0
+    @ammo = 0 
+	 @maxammo = 0
   end
 
   def decAmmo()

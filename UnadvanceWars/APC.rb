@@ -35,8 +35,10 @@ class APC
     @hasMoved = false
     @commander = nil
     @attackTable = {}
-    @ammo = 0
-    @fuel = 70
+    @ammo = 0 
+	 @maxammo = 0
+    @fuel = 70 
+	 @maxFuel = 70
     @isFlying = false
     @isSailing = false
     @cost = 5000
@@ -69,8 +71,16 @@ class APC
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
@@ -163,7 +173,7 @@ class APC
   end
 
   def restockAmmo()
-    @ammo = 9
+    @ammo = 0
   end
 
   def decAmmo()

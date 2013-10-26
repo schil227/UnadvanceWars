@@ -36,8 +36,10 @@ class TChopper
     @hasMoved = false
     @commander = nil
     @attackTable = {}
-    @ammo = 0
-    @fuel = 99
+    @ammo = 0 
+	 @maxammo = 0
+    @fuel = 99 
+	 @maxFuel = 99
     @isSailing = false
     @cost = 5000
     @unitCommands = ['wait','deploy']
@@ -67,12 +69,20 @@ class TChopper
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def decTurnFuel()
       @fuel = @fuel - 2
     end
 
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable

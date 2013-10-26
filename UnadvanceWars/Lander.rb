@@ -35,8 +35,10 @@ class Lander
     @hasMoved = false
     @commander = nil
     @attackTable = {}
-    @ammo = 0
-    @fuel = 99
+    @ammo = 0 
+	 @maxammo = 0
+    @fuel = 99 
+	 @maxFuel = 99
     @isFlying = false
     @isSailing = true
     @cost = 12000
@@ -72,12 +74,20 @@ class Lander
       @fuel
     end
 
+	 def self.maxFuel
+      @maxFuel
+    end
+
     def decTurnFuel()
       @fuel = @fuel - 1
     end
 
     def self.ammo
       @ammo
+    end
+
+	 def self.maxAmmo
+      @maxAmmo
     end
 
     def self.attackTable
