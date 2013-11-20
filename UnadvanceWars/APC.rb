@@ -35,18 +35,16 @@ class APC
     @hasMoved = false
     @commander = nil
     @attackTable = {}
-    @ammo = 0 
-	 @maxammo = 0
-    @fuel = 70 
-	 @maxFuel = 70
+    @ammo = 0
+    @maxAmmo = 0
+    @fuel = 70
+    @maxFuel = 70
     @isFlying = false
     @isSailing = false
     @cost = 5000
     @unitCommands = ['attack','wait','supply',"deploy"]
     @convoyedUnit = nil
 
-    
-    
     def self.convoyedUnit
       @convoyedUnit
     end
@@ -71,7 +69,7 @@ class APC
       @fuel
     end
 
-	 def self.maxFuel
+    def self.maxFuel
       @maxFuel
     end
 
@@ -79,7 +77,7 @@ class APC
       @ammo
     end
 
-	 def self.maxAmmo
+    def self.maxAmmo
       @maxAmmo
     end
 
@@ -131,9 +129,9 @@ class APC
       @isDestroyed
     end
   end
-  
+
   def convoyedUnits()
-  return [@convoyedUnit].delete_if{|x| x == nil}
+    return [@convoyedUnit].delete_if{|x| x == nil}
   end
 
   def hasDeployableUnits()
@@ -154,6 +152,11 @@ class APC
     return warMachine
   end
 
+  def supplyUnit(unit)
+    unit.restockAmmo()
+    unit.restockFuel()
+  end
+
   def incHealth(num)
     @health = @health+num
     @power = 10*(@health *0.1)
@@ -172,8 +175,21 @@ class APC
     @fuel = @fuel - num
   end
 
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+  def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+  def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
+  end
+
   def restockAmmo()
     @ammo = 0
+    @maxAmmo = 0
   end
 
   def decAmmo()

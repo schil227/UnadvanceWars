@@ -38,7 +38,7 @@ class BChopper
     @attackTable = {'r' => 0.55, 't' => 0.55, 'M' => 0.25, 'p' => 0.65, 'a' => 0.65, 'R' => 0.65, 'A' => 0.25, 's' => 0.65, 'L' => 0.25, 'C' => 0.55, 'S' => 0.25, 'B' => 0.25}
     @secondaryAttackTable = {'i' => 0.75, 'm' => 0.75, 'r' => 0.30, 't' => 0.06, 'M' => 0.01, 'p' => 0.20, 'a' => 0.25, 'R' => 0.35, 'A' => 0.06, 's' => 0.35, 'b'=> 0.65, 'T' => 0.95 }
     @ammo = 6 
-	 @maxammo = 6
+	 @maxAmmo = 6
     @fuel = 99 
 	 @maxFuel = 99
     @isSailing = false
@@ -152,9 +152,20 @@ class BChopper
     @fuel = @fuel - num
   end
 
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
+  end
+
   def restockAmmo()
     @ammo = 6 
-	 @maxammo = 6
   end
 
   def decAmmo()

@@ -36,7 +36,7 @@ class Battleship
     @commander = nil
     @attackTable = {'i' => 0.95, 'm' => 0.90, 'r' => 0.90 ,'t' => 0.85, 'M' => 0.55, 'p' => 0.80, 'a' => 0.80, 'R' => 0.85, 'A' => 0.85, 's' => 0.90, 'L' => 0.95, 'C'=> 0.95, 'S' => 0.95, 'B' => 0.50 }
     @ammo = 9 
-	 @maxammo = 9
+	 @maxAmmo = 9
     @fuel = 99 
 	 @maxFuel = 99
     @isFlying = false
@@ -145,6 +145,18 @@ class Battleship
 
   def decFuel(num)
     @fuel = @fuel - num
+  end
+
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
   end
 
   def restockAmmo()

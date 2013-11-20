@@ -36,7 +36,7 @@ class Submarine
     @commander = nil
     @attackTable = {'L' => 0.95, 'C' => 0.25, 'S' => 0.55, 'B' => 0.55}
     @ammo = 6 
-	 @maxammo = 6
+	 @maxAmmo = 6
     @fuel = 60 
 	 @maxFuel = 60
     @isFlying = false
@@ -160,9 +160,20 @@ class Submarine
     @fuel = @fuel - num
   end
 
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
+  end
+
   def restockAmmo()
     @ammo = 6 
-	 @maxammo = 6
   end
 
   def decAmmo()

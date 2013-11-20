@@ -37,7 +37,7 @@ class Bomber
     @commander = nil 
     @attackTable = {'i' => 1.10, 'm' => 1.10, 'r' => 1.05, 't' => 1.05, 'M' => 0.95, 'p' => 1.05, 'a' => 1.05, 'R' => 1.05, 'A' => 0.95, 's' => 1.05, 'L' => 0.95, 'C' => 0.85, 'S' =>0.95, 'B' => 0.75}
     @ammo = 9 
-	 @maxammo = 9
+	 @maxAmmo = 9
     @fuel = 99 
 	 @maxFuel = 99
     @isSailing = false
@@ -142,11 +142,28 @@ class Bomber
 
   def restockFuel()
     @ammo = 9 
+	 @maxammo = 9 
+	 @maxammo = 9 
+	 @maxammo = 9 
+	 @maxammo = 9 
+	 @maxammo = 9 
 	 @maxammo = 99
   end
 
   def decFuel(num)
     @fuel = @fuel - num
+  end
+
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
   end
 
   def restockAmmo()

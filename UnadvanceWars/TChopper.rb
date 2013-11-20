@@ -37,7 +37,7 @@ class TChopper
     @commander = nil
     @attackTable = {}
     @ammo = 0 
-	 @maxammo = 0
+	 @maxAmmo = 0
     @fuel = 99 
 	 @maxFuel = 99
     @isSailing = false
@@ -172,6 +172,18 @@ class TChopper
 
   def decFuel(num)
     @fuel = @fuel - num
+  end
+
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
   end
 
   def restockAmmo()

@@ -36,7 +36,7 @@ class Missile
     @commander = nil
     @attackTable = {'b' => 1.20, 'T' => 1.20, 'F' => 1.00, 'P' => 1.00}
     @ammo = 6 
-	 @maxammo = 6
+	 @maxAmmo = 6
     @fuel = 50 
 	 @maxFuel = 50
     @isFlying = false
@@ -143,9 +143,20 @@ class Missile
     @fuel = @fuel - num
   end
 
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
+  end
+
   def restockAmmo()
     @ammo = 6 
-	 @maxammo = 6
   end
 
   def decAmmo()

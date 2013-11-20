@@ -36,7 +36,7 @@ class AntiAir
     @commander = nil
     @attackTable = {'i' => 1.05, 'm' => 1.05, 'r' => 0.60, 't' => 0.25, 'M' => 0.10, 'p' => 0.50, 'a' => 0.50, 'R' => 0.45, 'A' => 0.45, 's' => 0.50, 'b' => 1.20, 'T' =>1.20, 'F'=>0.65, 'P' => 0.75}
     @ammo = 9 
-	 @maxammo = 9
+	 @maxAmmo = 9
     @fuel = 60 
 	 @maxFuel = 60
     @isFlying = false
@@ -143,9 +143,20 @@ class AntiAir
     @fuel = @fuel - num
   end
 
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
+  end
+
   def restockAmmo()
     @ammo = 9 
-	 @maxammo = 9
   end
 
   def decAmmo()

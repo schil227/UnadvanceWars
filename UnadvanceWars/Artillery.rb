@@ -38,7 +38,7 @@ class Artillery
     @commander = nil
     @attackTable = {'i' => 0.90, 'm' => 0.85, 'r' => 0.80, 't' => 0.70, 'M' => 0.45, 'p' => 0.70, 'a' => 0.75, 'R' => 0.80, 'A' => 0.75, 's' => 0.80, 'L' => 0.55, 'C'=> 0.65, 'S' =>0.60, 'B' => 0.40}
     @ammo = 5 
-	 @maxammo = 5
+	 @maxAmmo = 5
     @fuel = 60 
 	 @maxFuel = 60
     @isFlying = false
@@ -145,9 +145,20 @@ class Artillery
     @fuel = @fuel - num
   end
 
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
+  end
+
   def restockAmmo()
     @ammo = 5 
-	 @maxammo = 5
   end
 
   def decAmmo()

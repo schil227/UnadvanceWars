@@ -13,7 +13,8 @@ for file in files
     str = str[0]
     p"The str:"+ str
     num = /\d+/.match(str)[0]
-    toAdd = "@ammo = " + num + " \n\t @maxammo = " + num
+    toAdd = "def restockAmmo()\n    @ammo = "+num+" \n  end\n\n"
+    str = "def restockAmmo()\n    @ammo = "+num+" \n\t @maxAmmo = "+num+"\n  end\n\n"#"@maxammo = "+num+"\n    @maxammo = "+num+"\n    @maxammo = "+num+"\n    @maxammo = "+num+"\n    @maxammo = "+num+"\n"
     text = text.gsub(str,toAdd)
     p(text)
     File.open(file,'w') do |out|

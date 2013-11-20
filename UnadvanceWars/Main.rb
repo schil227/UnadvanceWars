@@ -334,7 +334,7 @@ def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through t
 end
 
 def genAttackRange(warMachine)
-  attackRange = genMoveRange(warMachine)
+  attackRange = genMoveRange2(warMachine)
   newSpots = []
 
   for spot in attackRange
@@ -355,10 +355,20 @@ end
 
 ###Movement###
 
-def genMoveRange(warMachine)
+def genMoveRange2(warMachine)
   spaceArr = []
   currentSpace = @field.getSpace(warMachine.getCord)
   spaceArr.concat(genSpaceMovement(currentSpace, warMachine.movement, spaceArr, warMachine))
+
+  for space in spaceArr
+    space.resetSpaceMvmt
+  end
+  return spaceArr.uniq()
+end
+
+def genMoveRange(warMachine,movement, currentSpace)
+  spaceArr = []
+  spaceArr.concat(genSpaceMovement(currentSpace, movement, spaceArr, warMachine))
 
   for space in spaceArr
     space.resetSpaceMvmt
@@ -811,6 +821,18 @@ def attackUnit(unit, currentPlayer)
   end
 end
 
+def getAllDangerZones(currentPlayer)
+  spaceArr = []
+  for player in @listOfP
+    if player != currentPlayer
+      for unit in player.units
+        spaceArr = spaceArr + genAttackRange(unit)
+      end
+    end
+  end
+  return spaceArr
+end
+
 def retreat(unit, citySpaces)
   p("retreating!")
   pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, citySpaces, unit),[]).reverse
@@ -878,9 +900,60 @@ def dropSpacesWithUnits(unitPath)
   return unitPath
 end
 
+def spaceIsDangerous(space)
+  return @dangerZones.include?(space)
+end
+
+def openEnoughSpace(space, numOpenEnough)
+  if(numOpenEnough == 1)
+    return true #the space itself is assuemd opened from refactorBestPath method
+  elsif(numOpenEnough == 2) #
+    spaces = getNeighboringSpaces(space)
+    for space in spaces
+      if space.occoupiedWM == nil
+        return true
+      end
+    end
+  end
+  return false
+end
+
+def refactorBestPath(unit, unitPath, requiredOpenness) #returns an optimal space to go to from a path
+  size = unitPath.size-1
+  currentSpace = unitPath.last
+  unitPath = unitPath[0...-1]
+  goodSpace = nil
+  possibleSolutions =[]
+  allSpots << currentSpace
+  mvmt = currentSpace.movement
+  while(unitPath.size>0  && goodSpace == nil)
+    genMoveRange(unit,mvmt,currentSpace)
+    for space in genMoveRange
+      if(!allSpots.include?(space) && space.occoupiedWM == nil && openEnoughSpace(space,requiredOpenness)) #currentspace
+        if(!spaceIsDangerous(space) || (Random.rand(2) == 1)) #choose a dangerous space sometimes
+          goodSpace = space
+        else
+          possibleSolutions << currentSpot
+        end
+      else
+        allSpots << space
+      end
+    end
+    currentSpace = unitPath.last
+    unitPath = unitPath[0...-1]
+    size = unitPath.size-1
+  end
+  if(goodSpace != nil)
+    return goodSpace
+  elsif(!possibleSolutions.empty?)
+    retrun possibleSolutions.at(Random.rand(possibleSolutions.size-1) % possibleSolutions.size)
+  end
+  return nil
+end
+
 def nearEnemyBuilding(unit)
   buildingIsNear = false
-  spaceArr = genMoveRange(unit)
+  spaceArr = genMoveRange2(unit)
   for space in spaceArr
     if(space.terrain.class == City && space.terrain.occoupiedPlayer != unit.commander && space.occoupiedWM == nil)
       buildingIsNear = true
@@ -891,7 +964,7 @@ def nearEnemyBuilding(unit)
 end
 
 def getEnemyBuildingsInArea(unit)
-  spaceArr = genMoveRange(unit)
+  spaceArr = genMoveRange2(unit)
   buildingSpaces = []
   for space in spaceArr
     if(space.terrain.class == City && space.terrain.occoupiedPlayer != unit.commander && space.occoupiedWM == nil)
@@ -934,22 +1007,103 @@ def unitNeedsSupply(unit)
   wm = nil
   for space in genMoveRange(unit)
     wm = space.occoupiedWM
-    if wm != nil
-      
+    if(wm != nil && wm.commander == unit.commander && wm.needsSupply())
+      return wm
+    end
+  end
+  return wm
+end
+
+def deliverUnitToCity(unit)
+  isClose = false
+  pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, getEnemyBuildingsInArea(unit), unit),[]).reverse
+  targetCity = pathToCity.last
+  if(genMoveRange(unit,(unit.movement + unit.convoyedUnit.movement),@field.getSpace(unit.getCord)).include?(targetCity))
+    isClose = true
+    targetSpace = refactorBestPath(unit,pathToCity,2)
+  else
+    targetSpace = refactorBestPath(unit,pathToCity,1)
+  end
+  if(targetSpace != nil)
+    pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, targetSpace, unit),[]).reverse
+  end
+  unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
+  if(unitPath.size > 0)
+    move(unit, unitPath)
+  end
+  if(isClose)
+    targetDeploySpace = nil
+    spaces = calcClosestSpace(getNeighboringSpaces(deployableSpots(unit.x,unit.y,unit.class)), targetCity).reverse
+    for space in spaces
+      if space.occoupiedWM == nil
+        targetDeploySpace = space
+      end
+    end
+    unitToDeploy = unit.deploy
+    unitToDeploy.setCord(targetDeploySpace.getCord.at(0), targetDeploySpace.getCord.at(1))
+     @field.addWM(unitToDeploy)
+     @sprites << unitToDeploy
+  end
+  
+end
+
+def getAsFarAsPossible(unit, pathToCity, movement)
+  i = 0
+  unitPath = []
+  mvmt = movement
+  while mvmt > 0 #this basically gets the unit as far as it can get on the whole path
+    if(i >= pathToCity.size)
+      mvmt = 0
+    else
+      citySpace = pathToCity.at(i)
+      if (citySpace.terrain.movement <= mvmt || (unit.isFlying && mvmt > 0))
+        p("gonna add the space, mvmt:" + mvmt.to_s + ", spaceMvmt:" + citySpace.terrain.movement.to_s)
+        unitPath << pathToCity.at(i)
+        if(unit.isFlying)
+          mvmt = mvmt - 1
+        else
+          mvmt = mvmt - citySpace.terrain.movement
+        end
+        i = i + 1
+      else
+        p("not gonna add the space")
+        mvmt = 0
+      end
+    end
+  end
+  return unitPath
+end
+
+def supplyNearbyUnit(unit,supplyUnit)
+  unitIsSupplied = false
+  retreat(unit,getNeighboringSpaces(supplyUnit.space))
+  spaces = getNeighboringSpaces(unit.space)
+  for space in spaces
+    if space.occoupiedWM == supplyUnit
+      unit.supply(supplyUnit)
+      unitIsSupplied = true
+    end
+  end
+  if(!unitIsSupplied)
+    nextUnit = nil
+    for space in spaces
+      if space.ouccoupiedWM != nil && nextUnit == nil
+        nextUnit = space.occoupiedWM
+
+      elsif space.occoupiedWM != nil && nextUnit != nil
+        if(space.occoupiedWM.fuel *1.0/(space.occoupiedWM.maxFuel*1.0)) > (nextUnit.fuel*1.0/nextUnit.maxFuel*1.0) || (space.occoupiedWM.ammo *1.0 / (space.occoupiedWM.maxAmmo *1.0)) > (nextUnit.ammo*1.0 / nextUnit.maxAmmo*1.0)
+          nextUnit = space.occoupiedWM
+        end
+      end
+    end
+    if(nextUnit != nil)
+      supply(nextUnit)
     end
   end
 end
 
-def deliverUnitToCity(unit)
-
-end
-
-def supplyNearbyUnit(unit)
-
-end
-
 def findInf(unit)
-  
+
 end
 
 #################Mechanics###########################################
@@ -1616,8 +1770,8 @@ def main()
     if(currentPlayer.class.to_s != "AI")
       getCommand(currentPlayer)
     else
-
       ######### A I Implementation ####
+      @dangerZones = getAllDangerZones(currentPlayer)
       sortedUnits = currentPlayer.units.sort{|a,b| b.cost <=> a.cost }
       for unit in sortedUnits
         p("The current unit:" + unit.class.to_s)
@@ -1640,10 +1794,11 @@ def main()
           goToEnemyCity(unit)
           didAction = true
         elsif(!didAction && unit.class == APC)
+          supplyUnit = unitNeedsSupply(unit)
           if(unit.convoyedUnit != nil)
             deliverUnitToCity(unit)
-          elsif(unitNeedsSupply(unit))
-            supplyNearbyUnit(unit)
+          elsif(supplyUnit != nil)
+            supplyNearbyUnit(unit,supplyUnit)
           else
             findInf(unit)
           end
@@ -1655,6 +1810,7 @@ def main()
           attackUnit(unit, currentPlayer)
           didAction = true
         end
+
       end
 
     end
@@ -1663,6 +1819,11 @@ def main()
       setUnitsUnmoved(currentPlayer)
       x = nextPlayerPosition(x)
       currentPlayer =  @listOfP.at(x)
+      #      t1 = Time.new()
+      #      p("time1:" + t1.to_s)
+      #
+      #      t2 = Time.new()
+      #      ("time2:" + t2.to_s)
       p("the next player is " + currentPlayer.name)
       for player in @listOfP
         if player.units.empty?

@@ -37,7 +37,7 @@ class Cruiser
     @attackTable = {'S' => 0.90}
     @secondaryAttackTable = {'b' => 1.15, 'T' => 1.15, 'F' => 0.55, 'P' => 0.65 }
     @ammo = 9 
-	 @maxammo = 9
+	 @maxAmmo = 9
     @fuel = 60 
 	 @maxFuel = 60
     @isFlying = false
@@ -154,6 +154,18 @@ class Cruiser
 
   def decFuel(num)
     @fuel = @fuel - num
+  end
+
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
   end
 
   def restockAmmo()

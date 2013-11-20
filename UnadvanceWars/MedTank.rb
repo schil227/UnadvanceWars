@@ -38,7 +38,7 @@ class MedTank
     @attackTable = {'r' => 1.05, 't' => 0.85, 'M' => 0.55, 'p' => 1.05,'a' => 1.05, 'R' => 1.05, 'A' => 1.05, 's' => 1.05, 'L' => 0.35, 'C' => 0.55, 'S' => 0.10, 'B' => 0.10 }
     @secondaryAttackTable = {'i' => 1.05, 'm' => 0.95, 'r' => 0.45, 't' => 0.08, 'M' => 0.01, 'p' => 0.45, 'a' => 0.45, 'R' => 0.55, 'A' => 0.07, 's' => 0.35, 'b'=> 0.12, 'T' => 0.45}
     @ammo = 5 
-	 @maxammo = 5
+	 @maxAmmo = 5
     @fuel = 50 
 	 @maxFuel = 50
     @isFlying = false
@@ -143,11 +143,28 @@ class MedTank
 
   def restockFuel()
     @ammo = 5 
+	 @maxammo = 5 
+	 @maxammo = 5 
+	 @maxammo = 5 
+	 @maxammo = 5 
+	 @maxammo = 5 
 	 @maxammo = 50
   end
 
   def decFuel(num)
     @fuel = @fuel - num
+  end
+
+  def needsFuel()
+    return (@fuel*1.0)/(@maxFuel*1.0) < 0.2
+  end
+
+   def needsAmmo()
+    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+  end
+
+   def needsSupply()
+    return ((@fuel*1.0)/(@maxFuel*1.0) < 0.2) || ((@ammo*1.0)/(@maxAmmo*1.0) < 0.2)
   end
 
   def restockAmmo()
