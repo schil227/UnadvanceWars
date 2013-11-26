@@ -73,10 +73,10 @@ def setup(useUnits)
       art = Artillery.new(2,3,1),
       tank2 = Tank.new(0,4,1),
       inf = Infantry.new(6,7,1),
-      chop = BChopper.new(5,18,1),
-      bat = Battleship.new(3,11,1),
+      chop = BChopper.new(8,15,1),
+      #bat = Battleship.new(3,11,1),
       bomb = Bomber.new(4,5,1),
-      crsr = Cruiser.new(3,10,1),
+     # crsr = Cruiser.new(3,10,1),
       recon1 = Recon.new(2,8,1),
       mech1 = Mech.new(2,9,1),
       apc = APC.new(6,8,1),
@@ -94,7 +94,8 @@ def setup(useUnits)
       #      sub = Submarine.new(2,11,2),
       #      recon = Recon.new(3,9,2),
       #      mech = Mech.new(1,9,2),
-      mech2 = Mech.new(2,18,2),
+      mech2 = Mech.new(8,18,2),
+      apc = APC.new(7,18,2),
     ]
     player1.addUnits(p1Units)
     player2.addUnits(p2Units)
@@ -550,7 +551,7 @@ def move(warMachine, spaces) #animation, setting/unsetting spaces
     seconds_passed = @clock.tick().seconds
 
     timeSum += seconds_passed*10
-    if(timeSum > 5 && warMachine.fuel > 0)
+    if(timeSum > 3 && warMachine.fuel > 0)
       ####Fuel is currently broken, as the path is not built (and it decrements based on distance)
       warMachine.decFuel(1)
       timeSum = 0
@@ -619,7 +620,7 @@ def movePath(warMachine)
   spotSelected = false
   x = 0
   p("before gen move range")
-  tmpArr = genMoveRange(warMachine)
+  tmpArr = genMoveRange2(warMachine)
   for space in tmpArr
     space.toggleIsCursor()
     @sprites << space
@@ -850,31 +851,21 @@ def retreat(unit, citySpaces)
     for space in unitPath
       print(space.class.to_s + ", ")
     end
-    while mvmt > 0 #this basically gets the unit as far as it can get on the whole path
-      if(i >= pathToCity.size)
-        mvmt = 0
-      else
-        citySpace = pathToCity.at(i)
-        if (citySpace.terrain.movement <= mvmt || (unit.isFlying && mvmt > 0))
-          p("gonna add the space, mvmt:" + mvmt.to_s + ", spaceMvmt:" + citySpace.terrain.movement.to_s)
-          unitPath << pathToCity.at(i)
-          if(unit.isFlying)
-            mvmt = mvmt - 1
-          else
-            mvmt = mvmt - citySpace.terrain.movement
-          end
-          i = i + 1
-        else
-          p("not gonna add the space")
-          mvmt = 0
-        end
-      end
-    end
-    p("path to city size:" + pathToCity.size.to_s + ", unitPath size:" + unitPath.size.to_s)
 
-    if(unitPath.size > 0)
-      unitPath = dropSpacesWithUnits(unitPath)
+    unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
+    p("unit path length:" + unitPath.size.to_s)
+    targetSpace = refactorBestPath(unit,unitPath,1)
+    if(targetSpace != nil)
+      p("the targetSpace cords are:" +targetSpace.getCord().to_s + " with type " + targetSpace.terrain.class.to_s)
+      unitPath = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), unit.movement, [targetSpace], unit),[]).reverse
+      p("unit path length ref:" + unitPath.size.to_s)
+      p("path to city size:" + pathToCity.size.to_s + ", unitPath size:" + unitPath.size.to_s)
+    else
+      p("targetspace was null")
     end
+    #    if(unitPath.size > 0)
+    #      unitPath = dropSpacesWithUnits(unitPath)
+    #    end
     if(unitPath.size > 0)
       move(unit, unitPath)
     end
@@ -919,35 +910,76 @@ def openEnoughSpace(space, numOpenEnough)
 end
 
 def refactorBestPath(unit, unitPath, requiredOpenness) #returns an optimal space to go to from a path
-  size = unitPath.size-1
+  t1 = Time.new()
+  p("time1:" + t1.to_s)
+
   currentSpace = unitPath.last
-  unitPath = unitPath[0...-1]
+  size = unitPath.size
   goodSpace = nil
   possibleSolutions =[]
+  allSpots = []
+    
+  p("the starting space is:" + currentSpace.getCord.to_s + ", type:" + currentSpace.terrain.class.to_s)
+  #initial space check
+  if(currentSpace.occoupiedWM == nil && openEnoughSpace(currentSpace,requiredOpenness)) #currentspace
+    if((!spaceIsDangerous(currentSpace))  && goodSpace == nil ) # || (Random.rand(2) == 1)) choose a dangerous space sometimes
+      p("THE PERFECT SPACE! REJOYCE! dangerous?: ")
+      goodSpace = currentSpace
+    else
+      p("A DANGEROUS SPACE! BEWARE!")
+      possibleSolutions << currentSpace
+    end
+  else
+    p("movin on to other spaces")
+  end
+
   allSpots << currentSpace
   mvmt = currentSpace.movement
-  while(unitPath.size>0  && goodSpace == nil)
-    genMoveRange(unit,mvmt,currentSpace)
-    for space in genMoveRange
+  unitPath = unitPath[0...-1]
+  currentSpace = unitPath.last
+  
+  while(unitPath.size>0  && goodSpace == nil && mvmt > 0)
+    p("mvmt: " + mvmt.to_s + ", starting space is:" + currentSpace.getCord.to_s + ", type:" + currentSpace.terrain.class.to_s)
+    moveRange = genMoveRange(unit,mvmt,currentSpace) 
+    for space in moveRange
+      p("checkin space:" + space.getCord.to_s + ", type:" + space.terrain.class.to_s)
       if(!allSpots.include?(space) && space.occoupiedWM == nil && openEnoughSpace(space,requiredOpenness)) #currentspace
-        if(!spaceIsDangerous(space) || (Random.rand(2) == 1)) #choose a dangerous space sometimes
+        if((!spaceIsDangerous(space) ) && goodSpace == nil ) #choose a dangerous space sometimes
+          p("THE PERFECT SPACE! REJOYCE!") #|| (Random.rand(2) == 1)
           goodSpace = space
+        elsif(!spaceIsDangerous(space))
+          p("space not dangerous, but goodspace claimed")
+          possibleSolutions << space
         else
-          possibleSolutions << currentSpot
+          p("A DANGEROUS SPACE! BEWARE!")
+          possibleSolutions << space
         end
       else
-        allSpots << space
+        "Not a good spot."
       end
+      allSpots << space
     end
+    if((unitPath.size*1.0) / (size*1.0) < 0.5)
+      mvmt = mvmt + currentSpace.movement
+    else
+      mvmt = mvmt - currentSpace.movement
+    end
+    
     currentSpace = unitPath.last
     unitPath = unitPath[0...-1]
-    size = unitPath.size-1
+
   end
+
+  t2 = Time.new()
+  p("time2:" + t2.to_s)
   if(goodSpace != nil)
+    p("returning the good space")
     return goodSpace
   elsif(!possibleSolutions.empty?)
-    retrun possibleSolutions.at(Random.rand(possibleSolutions.size-1) % possibleSolutions.size)
+    p("returning the ok space")
+    return possibleSolutions.at(Random.rand(possibleSolutions.size) % possibleSolutions.size)
   end
+  p("no spaces found")
   return nil
 end
 
@@ -1005,7 +1037,7 @@ end
 
 def unitNeedsSupply(unit)
   wm = nil
-  for space in genMoveRange(unit)
+  for space in genMoveRange2(unit)
     wm = space.occoupiedWM
     if(wm != nil && wm.commander == unit.commander && wm.needsSupply())
       return wm
@@ -1018,19 +1050,21 @@ def deliverUnitToCity(unit)
   isClose = false
   pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, getEnemyBuildingsInArea(unit), unit),[]).reverse
   targetCity = pathToCity.last
+  unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
   if(genMoveRange(unit,(unit.movement + unit.convoyedUnit.movement),@field.getSpace(unit.getCord)).include?(targetCity))
     isClose = true
-    targetSpace = refactorBestPath(unit,pathToCity,2)
+    targetSpace = refactorBestPath(unit,unitPath,2)
   else
-    targetSpace = refactorBestPath(unit,pathToCity,1)
+    targetSpace = refactorBestPath(unit,unitPath,1)
   end
   if(targetSpace != nil)
-    pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, targetSpace, unit),[]).reverse
+    unitPath = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), unit.movement, [targetSpace], unit),[]).reverse
   end
-  unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
+
   if(unitPath.size > 0)
     move(unit, unitPath)
   end
+
   if(isClose)
     targetDeploySpace = nil
     spaces = calcClosestSpace(getNeighboringSpaces(deployableSpots(unit.x,unit.y,unit.class)), targetCity).reverse
@@ -1041,10 +1075,10 @@ def deliverUnitToCity(unit)
     end
     unitToDeploy = unit.deploy
     unitToDeploy.setCord(targetDeploySpace.getCord.at(0), targetDeploySpace.getCord.at(1))
-     @field.addWM(unitToDeploy)
-     @sprites << unitToDeploy
+    @field.addWM(unitToDeploy)
+    @sprites << unitToDeploy
   end
-  
+
 end
 
 def getAsFarAsPossible(unit, pathToCity, movement)
@@ -1107,6 +1141,10 @@ def findInf(unit)
 end
 
 #################Mechanics###########################################
+
+def highlightSpace(cord)
+  @field.getSpace(cord).toggleIsCursor()
+end
 
 def tmpField(cords)
   listOfCords = @field.listOfCords()
@@ -1747,6 +1785,7 @@ end
 
 def main()
   setup(true)
+  
   x = 0
   currentPlayer = @listOfP.at(x)
 
