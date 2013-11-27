@@ -76,7 +76,7 @@ def setup(useUnits)
       chop = BChopper.new(8,15,1),
       #bat = Battleship.new(3,11,1),
       bomb = Bomber.new(4,5,1),
-     # crsr = Cruiser.new(3,10,1),
+      # crsr = Cruiser.new(3,10,1),
       recon1 = Recon.new(2,8,1),
       mech1 = Mech.new(2,9,1),
       apc = APC.new(6,8,1),
@@ -344,7 +344,7 @@ def genAttackRange(warMachine)
 
   p("attackrange before add:" + attackRange.length.to_s)
   for spot in newSpots
-    if(spot != nil)
+    if(spot != nil && !attackRange.include?(spot))
       attackRange << spot
     end
   end
@@ -918,7 +918,7 @@ def refactorBestPath(unit, unitPath, requiredOpenness) #returns an optimal space
   goodSpace = nil
   possibleSolutions =[]
   allSpots = []
-    
+
   p("the starting space is:" + currentSpace.getCord.to_s + ", type:" + currentSpace.terrain.class.to_s)
   #initial space check
   if(currentSpace.occoupiedWM == nil && openEnoughSpace(currentSpace,requiredOpenness)) #currentspace
@@ -937,10 +937,10 @@ def refactorBestPath(unit, unitPath, requiredOpenness) #returns an optimal space
   mvmt = currentSpace.movement
   unitPath = unitPath[0...-1]
   currentSpace = unitPath.last
-  
+
   while(unitPath.size>0  && goodSpace == nil && mvmt > 0)
     p("mvmt: " + mvmt.to_s + ", starting space is:" + currentSpace.getCord.to_s + ", type:" + currentSpace.terrain.class.to_s)
-    moveRange = genMoveRange(unit,mvmt,currentSpace) 
+    moveRange = genMoveRange(unit,mvmt,currentSpace)
     for space in moveRange
       p("checkin space:" + space.getCord.to_s + ", type:" + space.terrain.class.to_s)
       if(!allSpots.include?(space) && space.occoupiedWM == nil && openEnoughSpace(space,requiredOpenness)) #currentspace
@@ -964,7 +964,7 @@ def refactorBestPath(unit, unitPath, requiredOpenness) #returns an optimal space
     else
       mvmt = mvmt - currentSpace.movement
     end
-    
+
     currentSpace = unitPath.last
     unitPath = unitPath[0...-1]
 
@@ -1067,13 +1067,14 @@ def deliverUnitToCity(unit)
 
   if(isClose)
     targetDeploySpace = nil
-    spaces = calcClosestSpace(getNeighboringSpaces(deployableSpots(unit.x,unit.y,unit.class)), targetCity).reverse
-    for space in spaces
-      if space.occoupiedWM == nil
-        targetDeploySpace = space
+    spacesAndWeight = calcClosestSpace(deployableSpots(unit.x,unit.y,unit.class), targetCity).reverse
+    for space in spacesAndWeight
+      if space.at(0).occoupiedWM == nil
+        targetDeploySpace = space.at(0)
       end
     end
     unitToDeploy = unit.deploy
+    p("targetDeployspace: " + targetDeploySpace.class.to_s)
     unitToDeploy.setCord(targetDeploySpace.getCord.at(0), targetDeploySpace.getCord.at(1))
     @field.addWM(unitToDeploy)
     @sprites << unitToDeploy
@@ -1136,15 +1137,57 @@ def supplyNearbyUnit(unit,supplyUnit)
   end
 end
 
-def findInf(unit)
+def findInf(unit, currentPlayer)
+  units = currentPlayer.units.dup
+  p("num units total:" + currentPlayer.units.size.to_s)
+  infSpaces = units.delete_if{|x| x.class != Infantry && x.class != Mech}
+  p("num units total:" + currentPlayer.units.size.to_s)
+  retreat(unit,infSpaces)
+end
 
+def nearOpenTransport(inf, currentPlayer)
+  infSpaces = genMoveRange2(inf)
+  p("num units total:" + currentPlayer.units.size.to_s)
+  for unit in currentPlayer.units
+    p("currentplayer unit:" + unit.class.to_s)
+  end
+  units = currentPlayer.units.dup
+  transportUnits = units.delete_if{|x| x.class != APC && x.class != TChopper && x.class != Lander}
+  p("num transport units:" + transportUnits.size.to_s)
+  p("num units total:" + currentPlayer.units.size.to_s)
+    openUnits = Hash.new()
+  possibleTransports = []
+  for unit in transportUnits
+    
+    if unit.hasRoom
+      p("convoy unit has room!")
+      openUnits[unit] = @field.getSpace(unit.getCord)
+    end
+  end
+  openUnits.each{|unit,space|
+    if(infSpaces.include?(space))
+      p("found a possible transport!")
+      possibleTransports << unit
+    end
+  }
+
+  if(possibleTransports.size > 0)
+    return possibleTransports.at(Random.rand(2) % possibleTransports.length)
+  else
+    p("no transports found")
+    return nil
+  end
+end
+
+def joinTransport(unit,transport)
+  theMovementPath = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,[@field.getSpace(transport.getCord)],unit), []).reverse
+  move(unit,theMovementPath)
+  transport.convoy(unit)
+  @sprites.delete(unit)
+  @field.removeWM(unit)
 end
 
 #################Mechanics###########################################
-
-def highlightSpace(cord)
-  @field.getSpace(cord).toggleIsCursor()
-end
 
 def tmpField(cords)
   listOfCords = @field.listOfCords()
@@ -1785,7 +1828,7 @@ end
 
 def main()
   setup(true)
-  
+
   x = 0
   currentPlayer = @listOfP.at(x)
 
@@ -1830,16 +1873,25 @@ def main()
           #the next part needs to be rethought-perhapse a 'pick a choice and stick with it' attribute for WMs
           #otherwise they would just always cap or attack or retreat =(
         elsif(!didAction && (unit.class == Mech || unit.class == Infantry)) #and no good attack outcomes!!!
-          goToEnemyCity(unit)
+          transport = nearOpenTransport(unit,currentPlayer)
+          if(transport != nil)
+            joinTransport(unit,transport)
+          else
+            goToEnemyCity(unit)
+          end
           didAction = true
         elsif(!didAction && unit.class == APC)
+          p("APC is up")
           supplyUnit = unitNeedsSupply(unit)
           if(unit.convoyedUnit != nil)
+            p("delivering unit to city!")
             deliverUnitToCity(unit)
           elsif(supplyUnit != nil)
+            p("supplying unit!")
             supplyNearbyUnit(unit,supplyUnit)
           else
-            findInf(unit)
+            p("finding inf!")
+            findInf(unit, currentPlayer)
           end
           didAction = true
         elsif(!didAction && unit.health < 4)
@@ -1851,6 +1903,7 @@ def main()
         end
 
       end
+      p("number of remaning units:" + currentPlayer.units.size.to_s)
 
     end
     if(@listOfP.length() > 1)
