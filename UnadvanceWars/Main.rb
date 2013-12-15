@@ -73,27 +73,28 @@ def setup(useUnits)
       art = Artillery.new(2,3,1),
       tank2 = Tank.new(0,4,1),
       inf = Infantry.new(6,7,1),
-      chop = BChopper.new(8,15,1),
+      #  chop = BChopper.new(8,15,1),
       #bat = Battleship.new(3,11,1),
       bomb = Bomber.new(4,5,1),
       # crsr = Cruiser.new(3,10,1),
       recon1 = Recon.new(2,8,1),
-      mech1 = Mech.new(2,9,1),
+      # mech1 = Mech.new(2,9,1),
       apc = APC.new(6,8,1),
-      lan = Lander.new(6,11,1),
+      #lan = Lander.new(6,11,1),
     ]
 
     p2Units = [
-      #      mTank2 = MedTank.new(6,1,2),
-      #      tank = Tank.new(1,3,2),
-      #      art2 = Artillery.new(0,1,2),
+      mTank2 = MedTank.new(6,18,2),
+      tank = Tank.new(1,18,2),
+      art2 = Artillery.new(1,17,2),
       #      art3 = Artillery.new(1,1,2),
       #      rocket = Rocket.new(0,2,2),
-      #      aa = AntiAir.new(1,6,2),
+      aa = AntiAir.new(1,15,2),
       #fgtr = Fighter.new(2,14,2),
       #      sub = Submarine.new(2,11,2),
       #      recon = Recon.new(3,9,2),
       #      mech = Mech.new(1,9,2),
+      #bomb2 = Bomber.new(8,16,2),
       mech2 = Mech.new(8,18,2),
       apc = APC.new(8,17,2),
     ]
@@ -286,8 +287,8 @@ def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through t
 
   while unselected
     updateConsoleLockUnit(currentWMSpace.terrain,currentWM,calcDamage(warMachine,currentWM))
-    # p("warM: " + warMachine.class.to_s + " currentWM: " + currentWM.class.to_s)
-    # p("warM ammo : " + warMachine.ammo.to_s)
+    p("warM: " + warMachine.class.to_s + " currentWM: " + currentWM.class.to_s)
+    p("warM ammo : " + warMachine.ammo.to_s)
     seconds_passed = @clock.tick().seconds
     update(seconds_passed)
     @event_queue.each do |event|
@@ -334,8 +335,8 @@ def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through t
   return currentWM
 end
 
-def genAttackRange(warMachine)
-  attackRange = genMoveRange2(warMachine)
+def genAttackRange(warMachine, movement)
+  attackRange = genMoveRange(warMachine, movement, @field.getSpace(warMachine.getCord))
   newSpots = []
 
   for spot in attackRange
@@ -421,6 +422,7 @@ end
 def optimizeMovePath(startSpace, moveRange, endSpaces, unit)
   #generate list of all spaces which include end space, parent/child node structure!
   #select shortest from the path which gets there first
+  p("Optimizing movement")
   startNode = PathNode.new(nil, startSpace, moveRange)
   allNodesPassed= [startNode.currentNode]
   currentNodes = [startNode]
@@ -436,14 +438,17 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit)
   spaceFound = false
   solution = nil
   while !spaceFound
+    p("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    #    seconds_passed = @clock.tick().seconds
+    #    update(seconds_passed)
     pathSolutions = []
     newNodes = []
     for parentNode in currentNodes
-      spaces = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining , unit)
-      p("found " + spaces.size.to_s + " space(s)")
+      spaces = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining , unit, endSpaces)
+      #  p("found " + spaces.size.to_s + " space(s)")
       for space in spaces
         if(!allSpacesPassed.include?(space.currentNode))
-          p("space not in all spaces yet!")
+          #     p("space not in all spaces yet!")
           allSpacesPassed.push(space.currentNode)
           newNodes.push(space)
           for endSpace in endSpaces
@@ -454,7 +459,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit)
         end
       end
     end
-    # p("found all currentNodes. size: " + currentNodes.size.to_s)
+    p("found all currentNodes. size: " + currentNodes.size.to_s)
     if(!pathSolutions.empty?)
       p("solutions is not empty")
       solution = pathSolutions.at(0)
@@ -479,7 +484,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit)
   #  return optimizeMovePathRecursion(newNodes, allSpacesPassed, endSpaces, unit)
 end
 
-def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine)
+def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, endSpaces)
   parentSpace = parentPathNode.currentNode
   nSpace = @field.getSpace([parentSpace.x-1, parentSpace.y])
   sSpace = @field.getSpace([parentSpace.x+1, parentSpace.y])
@@ -494,21 +499,21 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine)
   p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
   applicableSpaceArr = []
   for space in tmpSpaceArr
-    p("trying a new space")
+    #   p("trying a new space")
     if(space != nil && mvmt > 0)
       if((space.movement <= mvmt ||(warMachine.isFlying && 1 <= mvmt)) && mvmt > space.spaceMvmt && \
       !( (space.occoupiedWM && (space.occoupiedWM.commander != warMachine.commander)) \
       || (space.terrain.class == Mountain && (warMachine.class != (Infantry || Mech) && !warMachine.isFlying)) \
       || (space.terrain.class == Sea && (!warMachine.isFlying && !warMachine.isSailing)) \
       || (space.terrain.class != Sea && space.terrain.class != Shoal && warMachine.isSailing)))
-        p("found a space!")
+        #   p("found a space!")
         # space.setSpaceMvmt(mvmt)
         if(warMachine.isFlying)
-          p("Adding a tmpNode, mvmt:" + (mvmt - 1).to_s + ", unit:" + warMachine.class.to_s)
+          #   p("Adding a tmpNode, mvmt:" + (mvmt - 1).to_s + ", unit:" + warMachine.class.to_s)
           tmpPathNode = PathNode.new(parentPathNode,space,mvmt - 1)
           applicableSpaceArr.push(tmpPathNode)
         else
-          p("Adding a tmpNode, mvmt:" + (mvmt - space.movement).to_s + ", unit:" + warMachine.class.to_s)
+          #  p("Adding a tmpNode, mvmt:" + (mvmt - space.movement).to_s + ", unit:" + warMachine.class.to_s)
           tmpPathNode = PathNode.new(parentPathNode,space,mvmt - space.movement)
           applicableSpaceArr.push(tmpPathNode)
         end
@@ -783,14 +788,20 @@ def findBestAttackPoint(unit, target, movementArr)
   neighboringSpaces = getNeighboringSpaces(@field.getSpace(target.getCord))
   p("got neighboring spaces")
   attackPoints = neighboringSpaces & movementArr #intersection
-  p("found intersection")
+  p("found intersection: size:" + attackPoints.length.to_s)
+  for space in attackPoints
+    p("intersect space: " + space.getCord().to_s)
+  end
   sortedAttackPoints = attackPoints.sort!{|a,b| a.defence <=> b.defence }
+  sortedAttackPoints.delete_if{|x| x.occoupiedWM != nil && x.occoupiedWM != unit}
   p("neighboringSpaces:" + neighboringSpaces.length.to_s + " moveArr:" + movementArr.length.to_s + " intersection:" + attackPoints.length.to_s)
   return sortedAttackPoints.at(Random.rand(2) % sortedAttackPoints.length)
 end
 
-def attackUnit(unit, currentPlayer)
+def attackUnit(unit, currentPlayer, listOfPlayers)
+
   if(!unit.isDirect)
+    p("unit is not direct: " + unit.class.to_s)
     attackableUnitSpaces = attackableWarMachines(genRange(unit.attackRange,unit.getCord),currentPlayer, unit)
     if(!attackableUnitSpaces.empty?)
       attackableUnits = []
@@ -800,12 +811,15 @@ def attackUnit(unit, currentPlayer)
       p("getting target")
       target = selectBest(unit, attackableUnits)
       attack(unit, target, currentPlayer)
+    else
+      #Direct units dont goto other spaces in seeking units (yet)
+      p("going forth! unit:" + unit.class.to_s)
+      ventureForward(unit, listOfPlayers)
     end
 
   else #genAttackRange
-    p("unit is direct")
-    attackableUnitSpaces = attackableWarMachines(genAttackRange(unit),currentPlayer, unit)
-
+    p("unit is direct: " + unit.class.to_s)
+    attackableUnitSpaces = attackableWarMachines(genAttackRange(unit, unit.movement),currentPlayer, unit)
     if(!attackableUnitSpaces.empty?)
       attackableUnits = []
       for warMachine in attackableUnitSpaces
@@ -814,11 +828,51 @@ def attackUnit(unit, currentPlayer)
       p("getting target")
       target = selectBest(unit, attackableUnits)
       p("getting target space")
-      targetSpace = findBestAttackPoint(unit, target,genMoveRange(unit))
-      p("going to move")
-      move(unit, genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,[targetSpace],unit),[]).reverse)
-      attack(unit, target, currentPlayer)
+      targetSpace = findBestAttackPoint(unit, target,genMoveRange2(unit))
+      p("going to move. target space: " + targetSpace.getCord.to_s)
+      if(targetSpace != nil) ##GOTTA CHANGE THIS TO DO SOMETHING ELSE
+        move(unit, genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,[targetSpace],unit),[]).reverse)
+        attack(unit, target, currentPlayer)
+      end
+    else
+      attackableUnitSpaces = attackableWarMachines(genAttackRange(unit, unit.movement*2),currentPlayer, unit)
+      if(!attackableUnitSpaces.empty?)
+        p("seeking nearby enemy unit unit:" + unit.class.to_s)
+        p("possible spaces:")
+        targetSpaces = []
+        for space in attackableUnitSpaces
+
+          targetSpaces.concat(getNeighboringSpaces(space))
+        end
+        targetSpaces = targetSpaces.uniq()
+        for space in targetSpaces
+          p(space.getCord().to_s)
+        end
+        retreat(unit,targetSpaces)
+      else
+        p("going forth! unit:" + unit.class.to_s)
+        ventureForward(unit, listOfPlayers)
+      end
     end
+  end
+end
+
+def ventureForward(unit, listOfPlayers)
+  capitalSpaces = []
+  for commander in listOfPlayers
+    if commander != unit.commander
+      for space in commander.citySpaces
+        if(space.terrain.class == City && space.terrain.isCapital)
+          capitalSpaces << space
+        end
+      end
+    end
+  end
+  if !capitalSpaces.empty?
+    p("going to the capitals: " + capitalSpaces.at(0).getCord().to_s)
+    retreat(unit,capitalSpaces)
+  else
+    p("no capital spaces found!")
   end
 end
 
@@ -827,7 +881,7 @@ def getAllDangerZones(currentPlayer)
   for player in @listOfP
     if player != currentPlayer
       for unit in player.units
-        spaceArr = spaceArr + genAttackRange(unit)
+        spaceArr = spaceArr + genAttackRange(unit, unit.movement)
       end
     end
   end
@@ -843,15 +897,12 @@ def retreat(unit, citySpaces)
     unitPath = []
     mvmt = unit.movement
     i = 0
-    p("The class of the pathToCity:" + pathToCity.class.to_s)
-    p("The class of the first element:" + pathToCity.at(0).class.to_s)
     p("the array size: "+ pathToCity.size.to_s)
     p("spaces in unitPath:")
     pathToCity.shift #pops off the first element (home square)
     for space in unitPath
       print(space.class.to_s + ", ")
     end
-
     unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
     p("unit path length:" + unitPath.size.to_s)
     if(unitPath.size > 0)
@@ -974,7 +1025,7 @@ def refactorBestPath(unit, unitPath, requiredOpenness, blackSpaces) #returns an 
 
   t2 = Time.new()
   p("time2:" + t2.to_s)
-  if(goodSpace != nil)
+  if(goodSpace != nil && Random.rand(10) > 3)
     p("returning the good space")
     return goodSpace
   elsif(!possibleSolutions.empty?)
@@ -1156,14 +1207,14 @@ def supplyNearbyUnit(unit,supplyUnit)
   spaces = getNeighboringSpaces(@field.getSpace(unit.getCord))
   for space in spaces
     if space.occoupiedWM == supplyUnit
-      unit.supply(supplyUnit)
+      unit.supplyUnit(supplyUnit)
       unitIsSupplied = true
     end
   end
   if(!unitIsSupplied)
     nextUnit = nil
     for space in spaces
-      if space.ouccoupiedWM != nil && nextUnit == nil
+      if space.occoupiedWM != nil && nextUnit == nil
         nextUnit = space.occoupiedWM
 
       elsif space.occoupiedWM != nil && nextUnit != nil
@@ -1187,6 +1238,7 @@ def findInf(unit, currentPlayer)
       space = @field.getSpace(unit.getCord)
       infSpaces << space
       infSpaces.concat(getNeighboringSpaces(space))
+      infSpaces.delete_if{|x| x== nil}
       p("num neighbors:"+ getNeighboringSpaces(space).size.to_s)
     end
   end
@@ -1436,8 +1488,8 @@ def deployableSpots(wMX, wMY, unitClass)
     @field.getSpace([wMX-1, wMY]),
     @field.getSpace([wMX, wMY-1])
   ]
-
-  return spaceArr.delete_if{|space| space == nil || space.terrain.class == Sea || (space.terrain.class == Mountain && unitClass.class != (Infantry || Mech)) || space.occoupiedWM != nil}
+  p("deployableSpots: unit class: " + unitClass.to_s)
+  return spaceArr.delete_if{|space| space == nil || space.terrain.class == Sea || (space.terrain.class == Mountain && unitClass != (Infantry || Mech)) || space.occoupiedWM != nil}
 end
 
 def deploy(unit, unitToDeploy)
@@ -1921,10 +1973,32 @@ def main()
       usuableUnits = infUnits + usuableUnits
 
       for unit in usuableUnits
+        p("press key for next unit")
+        debug = true
+        crtlLoopTime = 2
+        sumTime =  @clock.tick().seconds
+        while(debug)
+          seconds_passed = @clock.tick().seconds
+          sumTime += seconds_passed
+          update(seconds_passed)
+          @event_queue.each do |event|
+            case event
+            when Events::QuitRequested
+              throw :rubygame_quit
+            end
+          end
+          if(sumTime - crtlLoopTime > 0)
+            debug = false
+          else
+            p("seconds_passed:" + sumTime.to_s + " ctrlLoopTime:" + crtlLoopTime.to_s)
+          end
+        end
+
         p("The current unit:" + unit.class.to_s)
         didAction = false
         #If already capturing, keep capturing
         if(!didAction && (unit.class == Mech || unit.class == Infantry) && @field.getSpace(unit.getCord).terrain.class == City && @field.getSpace(unit.getCord).terrain.occoupiedPlayer != unit.commander && @field.getSpace(unit.getCord).terrain.cityLevel < 20 )
+          p("action:  keep on cappin unit:" + unit.class.to_s)
           terrain = @field.getSpace(unit.getCord).terrain
           commanderUnderSiege = terrain.occoupiedPlayer
           isCapital = terrain.conquer(unit)
@@ -1933,6 +2007,7 @@ def main()
           end
           didAction = true
         elsif(!didAction && (unit.class == Mech || unit.class == Infantry) && enemyBuildingWithinRange(unit))
+          p("action: moving to cap. unit:" + unit.class.to_s)
           if(nearEnemyBuilding(unit))
             tryCapturing(unit)
             didAction = true
@@ -1942,6 +2017,7 @@ def main()
           #the next part needs to be rethought-perhapse a 'pick a choice and stick with it' attribute for WMs
           #otherwise they would just always cap or attack or retreat =(
         elsif(!didAction && (unit.class == Mech || unit.class == Infantry)) #and no good attack outcomes!!!
+          p("action: inf stuff. unit:" + unit.class.to_s)
           transport = nearOpenTransport(unit,currentPlayer)
           if(transport != nil)
             joinTransport(unit,transport)
@@ -1950,7 +2026,7 @@ def main()
           end
           didAction = true
         elsif(!didAction && (unit.class == APC || unit.class == TChopper || unit.class == Lander))
-          p("APC is up")
+          p("action: transport unit is up. unit: " + unit.class.to_s)
           if(unit.class == APC)
             supplyUnit = unitNeedsSupply(unit)
           end
@@ -1966,13 +2042,18 @@ def main()
           end
           didAction = true
         elsif(!didAction && unit.health < 4)
+          p("action: retreating. unit:" + unit.class.to_s)
           retreat(unit, currentPlayer.citySpaces)
           didAction = true
         elsif(!didAction)
-          attackUnit(unit, currentPlayer)
+          p("action: attack. unit:" + unit.class.to_s)
+          t1 = Time.new()
+          p("attack time1:" + t1.to_s)
+          attackUnit(unit, currentPlayer, @listOfP.dup)
+          t2 = Time.new()
+          p("attack time2:" + t2.to_s)
           didAction = true
         end
-
       end
       p("number of remaning units:" + currentPlayer.units.size.to_s)
 

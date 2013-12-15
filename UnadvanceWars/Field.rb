@@ -113,7 +113,7 @@ class Field
         return space
       end
     end
-    p("SPACE NOT FOUND. Check if argument is in proper form")
+    #p("SPACE NOT FOUND. Check if argument is in proper form")
     return nil
   end
 

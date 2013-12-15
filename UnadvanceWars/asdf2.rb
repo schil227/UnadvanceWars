@@ -10,3 +10,32 @@ Dir["./*.rb"].each {|file|
     
 arr2 = arr.delete_if{|x| x.class != String}
   p("new arr:" + arr2.to_s)
+
+  
+def fib(numTimes, currentNum, prevNum)
+  if(numTimes > 0)
+    return fib(numTimes -1, currentNum + prevNum, currentNum)
+  else
+    return currentNum
+  end
+end
+    
+num = 0
+#Thread.new {
+#      sleep(rand(0)/10.0)
+#      Thread.current["mycount"] = count
+#      count += 1
+#   }
+
+
+p("fib: " + fib(1000, 1, 0).to_s)
+num = 0
+t1 = Thread.new{
+  sleep(1) 
+  num= fib(10000,1,0) 
+}
+while(num == 0 && t1.alive?)
+p("num: " + num.to_s)
+end
+p("end num: " + num.to_s)
+
