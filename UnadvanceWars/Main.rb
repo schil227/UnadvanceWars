@@ -84,19 +84,19 @@ def setup(useUnits)
     ]
 
     p2Units = [
-      mTank2 = MedTank.new(6,18,2),
-      tank = Tank.new(1,18,2),
-      art2 = Artillery.new(1,17,2),
+            mTank2 = MedTank.new(6,18,2),
+      #      tank = Tank.new(1,18,2),
+            art2 = Artillery.new(1,17,2),
       #      art3 = Artillery.new(1,1,2),
       #      rocket = Rocket.new(0,2,2),
-      aa = AntiAir.new(1,15,2),
-      #fgtr = Fighter.new(2,14,2),
+            aa = AntiAir.new(1,15,2),
+      fgtr = Fighter.new(2,14,2),
       #      sub = Submarine.new(2,11,2),
       #      recon = Recon.new(3,9,2),
       #      mech = Mech.new(1,9,2),
-      #bomb2 = Bomber.new(8,16,2),
-      mech2 = Mech.new(8,18,2),
-      apc = APC.new(8,17,2),
+      bomb2 = Bomber.new(8,16,2),
+            mech2 = Mech.new(8,18,2),
+            apc = APC.new(8,17,2),
     ]
     player1.addUnits(p1Units)
     player2.addUnits(p2Units)
@@ -336,9 +336,16 @@ def selectTarget(warMachine, attackableWMs) #cycles 'left' and 'right' through t
 end
 
 def genAttackRange(warMachine, movement)
+  p("gen attack range for unit: " +warMachine.class.to_s + " mvmt:" + movement.to_s )
+  if(movement > 12)
+    movement = 12
+  end
+  t1 = Time.new()
   attackRange = genMoveRange(warMachine, movement, @field.getSpace(warMachine.getCord))
+  t2 = Time.new()
+  p("attackRange time: " + (t2 - t1).to_s)
   newSpots = []
-
+  p("for spot in attack range of size: " + attackRange.size.to_s)
   for spot in attackRange
     newSpots.concat(getNeighboringSpaces(spot)) #my lazyness knows no bounds
   end
@@ -356,19 +363,71 @@ def genAttackRange(warMachine, movement)
 end
 
 ###Movement###
-
-def genMoveRange2(warMachine)
-  spaceArr = []
-  currentSpace = @field.getSpace(warMachine.getCord)
-  spaceArr.concat(genSpaceMovement(currentSpace, warMachine.movement, spaceArr, warMachine))
-
-  for space in spaceArr
-    space.resetSpaceMvmt
+#The final encounter
+def genMoveRange(unit, movement, space)
+  p("new move Range")
+  parentNode = PathNode.new(nil, space, movement)
+  applicableNodes = [parentNode]
+  nodes = genMoveRange3rec(unit, movement+1, parentNode, applicableNodes)
+  allSpaces = []
+  for node in applicableNodes
+    allSpaces << node.currentNode
   end
-  return spaceArr.uniq()
+  return allSpaces.uniq
 end
 
-def genMoveRange(warMachine,movement, currentSpace)
+def genMoveRange3rec(unit, movement, parentNode, applicableNodes)
+  newPathNodes = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining, unit)
+  spaces = []
+  for node in newPathNodes
+    spaces << node.currentNode
+  end
+
+  deleteFromSpaces = []
+  deleteFromAppNodes = []
+#  p("for space: " + parentNode.currentNode.getCord.to_s)
+  for node in applicableNodes
+    if spaces.include?(node.currentNode)
+      for space in spaces
+        if space == node.currentNode
+          if(movement - space.movement > node.movementRemaining)
+#            p("deleting from applicableNodes")
+            deleteFromAppNodes << node
+          else
+#            p("deleting from spaces: space:" + space.getCord.to_s + ", mvmt:" + (movement-space.movement).to_s + ", node:" + node.currentNode.getCord.to_s + ", nodeMvmt:" + node.movementRemaining.to_s)
+            deleteFromSpaces << space
+          end
+        end
+      end
+    end
+  end
+
+  spaces.delete_if{|x| deleteFromSpaces.include?(x)}
+  applicableNodes.delete_if{|x| deleteFromAppNodes.include?(x)}
+  newNodes = []
+  for space in spaces
+    if (unit.isFlying)
+      remaining = movement - 1
+    else
+    remaining = movement - space.movement
+    end
+    if(remaining > 0)
+      newPathNode = PathNode.new(parentNode,space,remaining)
+      applicableNodes << newPathNode
+      newNodes << newPathNode
+      newNodes.concat(genMoveRange3rec(unit, remaining, newPathNode, applicableNodes)).uniq
+    end
+  end
+  return newNodes.uniq
+end
+
+#electric boogaloo
+def genMoveRange2(warMachine)
+   return genMoveRange(warMachine,warMachine.movement,@field.getSpace(warMachine.getCord))
+end
+
+#old genMoveRange
+def genMoveRange3(warMachine,movement, currentSpace)
   spaceArr = []
   spaceArr.concat(genSpaceMovement(currentSpace, movement, spaceArr, warMachine))
 
@@ -398,17 +457,21 @@ def genSpaceMovement(space, mvmt, spaceArr, warMachine)
 
   #(space.occoupiedWM && space.occoupiedWM != warMachine)
   #&& !space.occoupiedWM
-
+  warMachineClass = warMachine.class
+  warMachineIsFlying = warMachine.isFlying
+  warMachineIsSailing = warMachine.isSailing
   tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
   for space in tmpSpaceArr
-    if(space != nil && mvmt > 0)
-      if((space.movement <= mvmt ||(warMachine.isFlying && 1 <= mvmt)) && mvmt > space.spaceMvmt && \
-      !( (space.occoupiedWM && (space.occoupiedWM.commander != warMachine.commander)) \
-      || (space.terrain.class == Mountain && (warMachine.class != (Infantry || Mech) && !warMachine.isFlying)) \
-      || (space.terrain.class == Sea && (!warMachine.isFlying && !warMachine.isSailing)) \
-      || (space.terrain.class != Sea && space.terrain.class != Shoal && warMachine.isSailing)))
+    if(space != nil && mvmt > 0 ) #ADDED THING HERE
+      spaceTerrainClass = space.terrain.class
+      spaceOccoupiedWM = space.occoupiedWM
+      if((space.movement <= mvmt ||(warMachineIsFlying && 1 <= mvmt)) && mvmt > space.spaceMvmt && \
+      !( (spaceOccoupiedWM && (spaceOccoupiedWM.commander != warMachine.commander)) \
+      || (spaceTerrainClass == Mountain && (warMachineClass != (Infantry || Mech) && !warMachineIsFlying)) \
+      || (spaceTerrainClass == Sea && (!warMachineIsFlying && !warMachineIsSailing)) \
+      || (spaceTerrainClass != Sea && spaceTerrainClass != Shoal && warMachineIsSailing)))
         space.setSpaceMvmt(mvmt)
-        if(warMachine.isFlying)
+        if(warMachineIsFlying)
           spaceArr.concat(genSpaceMovement(space, mvmt - 1, spaceArr, warMachine))
         else
           spaceArr.concat(genSpaceMovement(space, mvmt - space.movement, spaceArr, warMachine))
@@ -444,7 +507,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit)
     pathSolutions = []
     newNodes = []
     for parentNode in currentNodes
-      spaces = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining , unit, endSpaces)
+      spaces = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining , unit)
       #  p("found " + spaces.size.to_s + " space(s)")
       for space in spaces
         if(!allSpacesPassed.include?(space.currentNode))
@@ -484,7 +547,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit)
   #  return optimizeMovePathRecursion(newNodes, allSpacesPassed, endSpaces, unit)
 end
 
-def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, endSpaces)
+def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine)
   parentSpace = parentPathNode.currentNode
   nSpace = @field.getSpace([parentSpace.x-1, parentSpace.y])
   sSpace = @field.getSpace([parentSpace.x+1, parentSpace.y])
@@ -495,8 +558,8 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, endSpaces)
   #&& !space.occoupiedWM
 
   tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
-  p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s)
-  p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
+#  p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s)
+#  p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
   applicableSpaceArr = []
   for space in tmpSpaceArr
     #   p("trying a new space")
@@ -521,7 +584,7 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, endSpaces)
       end
     end
   end
-  p("returning spaces")
+#  p("returning spaces")
   return applicableSpaceArr
 end
 
@@ -625,7 +688,7 @@ def movePath(warMachine)
   spotSelected = false
   x = 0
   p("before gen move range")
-  tmpArr = genMoveRange2(warMachine)
+  tmpArr = genMoveRange(warMachine, warMachine.movement, nil)
   for space in tmpArr
     space.toggleIsCursor()
     @sprites << space
@@ -899,10 +962,13 @@ def retreat(unit, citySpaces)
     i = 0
     p("the array size: "+ pathToCity.size.to_s)
     p("spaces in unitPath:")
-    pathToCity.shift #pops off the first element (home square)
+    homeSpace = pathToCity.shift #pops off the first element (home square)
+    p("popped off home square: " + homeSpace.getCord.to_s + ", for unit " +  unit.class.to_s + " at space:" + @field.getSpace(unit.getCord).getCord.to_s)
+    p("pathToCity first spot is now:" + pathToCity.at(0).getCord.to_s)
     for space in unitPath
       print(space.class.to_s + ", ")
     end
+    
     unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
     p("unit path length:" + unitPath.size.to_s)
     if(unitPath.size > 0)
@@ -1137,6 +1203,7 @@ def deliverUnitToCity(unit,enemyCities)
   pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, enemyCities, unit),[]).reverse
   if(pathToCity.size > 0)
     targetCity = pathToCity.last
+    pathToCity.shift
     unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
 
     if(genMoveRange(unit,(unit.movement + unit.convoyedUnit.movement),@field.getSpace(unit.getCord)).include?(targetCity))
@@ -1173,7 +1240,7 @@ def deliverUnitToCity(unit,enemyCities)
 end
 
 def getAsFarAsPossible(unit, pathToCity, movement)
-  i = 0
+  i = 0 #changed to one to ignore starting space
   unitPath = []
   mvmt = movement
   p("going as far as possible, pathToCity.size:" + pathToCity.size.to_s)
