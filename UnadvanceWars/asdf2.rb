@@ -43,3 +43,7 @@ Dir["./*.rb"].each {|file|
    p("rand: " + Random.rand(5).to_s)  
   
 end
+
+p("ah")
+gets()
+p("sure")

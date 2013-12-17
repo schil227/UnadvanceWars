@@ -62,7 +62,7 @@ def setup(useUnits)
   @event_queue = EventQueue.new
   @event_queue.enable_new_style_events
 
-  player1 = Player.new("RED",1)
+  player1 = Player.new("RED",1) #was Player
   player2 = AI.new("BLUE",2, 1)
 
   @listOfP = [player1,player2]
@@ -368,7 +368,7 @@ def genMoveRange(unit, movement, space)
   p("new move Range")
   parentNode = PathNode.new(nil, space, movement)
   applicableNodes = [parentNode]
-  nodes = genMoveRange3rec(unit, movement+1, parentNode, applicableNodes)
+  nodes = genMoveRange3rec(unit, movement, parentNode, applicableNodes)
   allSpaces = []
   for node in applicableNodes
     allSpaces << node.currentNode
@@ -418,7 +418,7 @@ def genMoveRange3rec(unit, movement, parentNode, applicableNodes)
     else
       remaining = movement - space.movement
     end
-    if(remaining > 0)
+    if(remaining >= 0)
       newPathNode = PathNode.new(parentNode,space,remaining)
       applicableNodes << newPathNode
       newNodes << newPathNode
@@ -509,16 +509,17 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ig
   solution = nil
   while !spaceFound
     p("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-    #    seconds_passed = @clock.tick().seconds
-    #    update(seconds_passed)
     pathSolutions = []
     newNodes = []
     for parentNode in currentNodes
       spaces = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining, unit, ignoreEnemyUnits)
-      #  p("found " + spaces.size.to_s + " space(s)")
+      p("found " + spaces.size.to_s + " space(s)")
+      p("processing applicable neighboring spaces for space: " + parentNode.currentNode.getCord.to_s)
       for space in spaces
+        p("space: " + space.currentNode.getCord.to_s)
+
         if(!allSpacesPassed.include?(space.currentNode))
-          #     p("space not in all spaces yet!")
+          p("space not in all spaces yet!")
           allSpacesPassed.push(space.currentNode)
           newNodes.push(space)
           for endSpace in endSpaces
@@ -565,12 +566,13 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, ignoreEnemy
   #&& !space.occoupiedWM
 
   tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
-  #  p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s)
+  p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s)
   #  p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
   applicableSpaceArr = []
   for space in tmpSpaceArr
-    #   p("trying a new space")
+    p("trying a new space, mvmt:" + mvmt.to_s + " ignoreUnits: " + ignoreEnemyUnits.to_s )
     if(space != nil && mvmt > 0)
+      p("space is not nil and mvmt > 0, cord:" + space.getCord.to_s)
       if(spaceCanBeTraversed(space, warMachine, mvmt, ignoreEnemyUnits))
         #      if((space.movement <= mvmt ||(warMachine.isFlying && 1 <= mvmt)) && mvmt > space.spaceMvmt && \
         #      !( (  space.occoupiedWM && (space.occoupiedWM.commander != warMachine.commander && !ignoreEnemyUnits)) \
@@ -580,11 +582,11 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, ignoreEnemy
         #   p("found a space!")
         # space.setSpaceMvmt(mvmt)
         if(warMachine.isFlying)
-          #   p("Adding a tmpNode, mvmt:" + (mvmt - 1).to_s + ", unit:" + warMachine.class.to_s)
+          p("Adding a tmpNode, mvmt:" + (mvmt - 1).to_s + ", unit:" + warMachine.class.to_s)
           tmpPathNode = PathNode.new(parentPathNode,space,mvmt - 1)
           applicableSpaceArr.push(tmpPathNode)
         else
-          #  p("Adding a tmpNode, mvmt:" + (mvmt - space.movement).to_s + ", unit:" + warMachine.class.to_s)
+          p("Adding a tmpNode, mvmt:" + (mvmt - space.movement).to_s + ", unit:" + warMachine.class.to_s)
           tmpPathNode = PathNode.new(parentPathNode,space,mvmt - space.movement)
           applicableSpaceArr.push(tmpPathNode)
         end
@@ -635,6 +637,7 @@ def move(warMachine, spaces) #animation, setting/unsetting spaces
   timeSum = 0
   moving = true
   spaceArr = spaces.reverse
+  spaceArrDup = spaceArr.dup
   while moving
     seconds_passed = @clock.tick().seconds
 
@@ -645,6 +648,15 @@ def move(warMachine, spaces) #animation, setting/unsetting spaces
       timeSum = 0
       x = spaceArr.pop
       @field.removeWM(warMachine)
+      if(x == nil)
+        p("HEY! IT'S ABOUT TO FAIL! the space doesnt exist. dumping info:")
+        p("unit: " + warMachine.class.to_s + " located:" + warMachine.getCord.to_s + ", spaces" )
+        p("just for grins, [4, 12]: " + @field.getSpace([4, 12]).occoupiedWM.to_s  )
+        for space in spaceArrDup
+          p(space.getCord.to_s)
+        end
+        gets
+      end
       warMachine.setCord(x.x, x.y)
       ##if wm exists on space, set wM as tmp
       @field.addWM(warMachine)
@@ -878,7 +890,11 @@ def findBestAttackPoint(unit, target, movementArr)
   sortedAttackPoints = attackPoints.sort!{|a,b| a.defence <=> b.defence }
   sortedAttackPoints.delete_if{|x| x.occoupiedWM != nil && x.occoupiedWM != unit}
   p("neighboringSpaces:" + neighboringSpaces.length.to_s + " moveArr:" + movementArr.length.to_s + " intersection:" + attackPoints.length.to_s)
-  return sortedAttackPoints.at(Random.rand(2) % sortedAttackPoints.length)
+  if(sortedAttackPoints.length > 0)
+    return sortedAttackPoints.at(Random.rand(2) % sortedAttackPoints.length)
+  else
+    return nil
+  end
 end
 
 def attackUnit(unit, currentPlayer, listOfPlayers)
@@ -912,10 +928,15 @@ def attackUnit(unit, currentPlayer, listOfPlayers)
       target = selectBest(unit, attackableUnits)
       p("getting target space")
       targetSpace = findBestAttackPoint(unit, target,genMoveRange2(unit))
-      p("going to move. target space: " + targetSpace.getCord.to_s + " with target: " + target.class.to_s)
+
       if(targetSpace != nil) ##GOTTA CHANGE THIS TO DO SOMETHING ELSE
+        p("going to move. target space: " + targetSpace.getCord.to_s + " with target: " + target.class.to_s)
         move(unit, genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,[targetSpace],unit, false),[]).reverse)
         attack(unit, target, currentPlayer)
+      else
+        p("HEY! THAT WIERD ERROR OCCURED.")
+        p("unit: " + unit.class.to_s + " at " + unit.getCord.to_s + ", target: " + target.class.to_s + " at " + target.getCord.to_s)
+        #gets
       end
     else
       p("none immediate")
@@ -985,7 +1006,7 @@ def retreat(unit, citySpaces)
     pathToCity = filterPathOfEnemyUnits(pathToCity, unit)
   end
 
-  if(pathToCity.size > 0)
+  if(pathToCity.size > 0 && pathToCity.last != @field.getSpace(unit.getCord))
 
     p("found the city!")
     unitPath = []
@@ -1349,7 +1370,7 @@ def supplyNearbyUnit(unit,supplyUnit)
       end
     end
     if(nextUnit != nil)
-      supply(nextUnit)
+      unit.supplyUnit(nextUnit)
     end
   end
 end
@@ -2100,7 +2121,7 @@ def main()
       for unit in usuableUnits
         p("press key for next unit")
         debug = true
-        crtlLoopTime = 2
+        crtlLoopTime = 0.7
         sumTime =  @clock.tick().seconds
         while(debug)
           seconds_passed = @clock.tick().seconds
