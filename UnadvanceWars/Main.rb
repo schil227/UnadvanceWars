@@ -62,7 +62,7 @@ def setup(useUnits)
   @event_queue = EventQueue.new
   @event_queue.enable_new_style_events
 
-  player1 = Player.new("RED",1) #was Player
+  player1 = AI.new("RED",1, 1)
   player2 = AI.new("BLUE",2, 1)
 
   @listOfP = [player1,player2]
@@ -75,11 +75,11 @@ def setup(useUnits)
       inf = Infantry.new(6,7,1),
       #  chop = BChopper.new(8,15,1),
       #bat = Battleship.new(3,11,1),
-      bomb = Bomber.new(4,5,1),
+      #bomb = Bomber.new(4,5,1),
       # crsr = Cruiser.new(3,10,1),
       recon1 = Recon.new(2,8,1),
       # mech1 = Mech.new(2,9,1),
-      apc = APC.new(6,8,1),
+      apc = APC.new(4,11,1),
       #lan = Lander.new(6,11,1),
     ]
 
@@ -90,11 +90,11 @@ def setup(useUnits)
       #      art3 = Artillery.new(1,1,2),
       #      rocket = Rocket.new(0,2,2),
       aa = AntiAir.new(1,15,2),
-      fgtr = Fighter.new(2,14,2),
+      #fgtr = Fighter.new(2,14,2),
       #      sub = Submarine.new(2,11,2),
       #      recon = Recon.new(3,9,2),
       #      mech = Mech.new(1,9,2),
-      bomb2 = Bomber.new(8,16,2),
+      #bomb2 = Bomber.new(8,16,2),
       mech2 = Mech.new(8,18,2),
       apc = APC.new(8,17,2),
     ]
@@ -127,6 +127,51 @@ def attack(attacker, attacked,currentPlayer)
   p("before attack:")
   p("Attaking " + attacker.class.to_s + " health: " + (attacker.health).to_s)
   p("Defending " + attacked.class.to_s + " health: " + (attacked.health).to_s)
+  attackerSpace = @field.getSpace(attacker.getCord)
+  attackerSpace.toggleIsCursor
+  attackedSpace = @field.getSpace(attacked.getCord)
+  attackedSpace.toggleIsCursor
+  p("attackerSpace:"+ attackerSpace.class.to_s)
+  @sprites.concat([attackerSpace])
+  debug = true
+  crtlLoopTime = 0.7
+  sumTime =  @clock.tick().seconds
+  while(debug)
+    seconds_passed = @clock.tick().seconds
+    sumTime += seconds_passed
+    update(seconds_passed)
+    @event_queue.each do |event|
+      case event
+      when Events::QuitRequested
+        throw :rubygame_quit
+      end
+    end
+    if(sumTime - crtlLoopTime > 0)
+      debug = false
+    else
+      p("seconds_passed:" + sumTime.to_s + " ctrlLoopTime:" + crtlLoopTime.to_s)
+    end
+  end
+  @sprites.concat([attackedSpace])
+  debug = true
+  crtlLoopTime = 0.7
+  sumTime =  @clock.tick().seconds
+  while(debug)
+    seconds_passed = @clock.tick().seconds
+    sumTime += seconds_passed
+    update(seconds_passed)
+    @event_queue.each do |event|
+      case event
+      when Events::QuitRequested
+        throw :rubygame_quit
+      end
+    end
+    if(sumTime - crtlLoopTime > 0)
+      debug = false
+    else
+      p("seconds_passed:" + sumTime.to_s + " ctrlLoopTime:" + crtlLoopTime.to_s)
+    end
+  end
   attacked.decHealth(calcDamage(attacker,attacked)) #would add land def here
   attacker.decAmmo
   if(attacked.health > 0 && attacker.isDirect && attacked.isDirect) #counter attack, D v D only
@@ -140,6 +185,10 @@ def attack(attacker, attacked,currentPlayer)
     p("Attacking " + attacker.class.to_s + " was destroyed!")
     destroy(attacker, attacker.commander)
   end
+  attackerSpace.toggleIsCursor
+  attackedSpace.toggleIsCursor
+  @sprites.delete([attackerSpace])
+  @sprites.delete([attackedSpace])
   p("After attack:")
   p("Attaking " + attacker.class.to_s + " health: " + (attacker.health).to_s)
   p("Defending " + attacked.class.to_s + " health: " + (attacked.health).to_s)
@@ -567,26 +616,26 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, ignoreEnemy
 
   tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
   p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s)
-  #  p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
+  p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
   applicableSpaceArr = []
   for space in tmpSpaceArr
     p("trying a new space, mvmt:" + mvmt.to_s + " ignoreUnits: " + ignoreEnemyUnits.to_s )
     if(space != nil && mvmt > 0)
       p("space is not nil and mvmt > 0, cord:" + space.getCord.to_s)
-      if(spaceCanBeTraversed(space, warMachine, mvmt, ignoreEnemyUnits))
-        #      if((space.movement <= mvmt ||(warMachine.isFlying && 1 <= mvmt)) && mvmt > space.spaceMvmt && \
-        #      !( (  space.occoupiedWM && (space.occoupiedWM.commander != warMachine.commander && !ignoreEnemyUnits)) \
-        #      || (space.terrain.class == Mountain && (warMachine.class != (Infantry || Mech) && !warMachine.isFlying)) \
-        #      || (space.terrain.class == Sea && (!warMachine.isFlying && !warMachine.isSailing)) \
-        #      || (space.terrain.class != Sea && space.terrain.class != Shoal && warMachine.isSailing)))
-        #   p("found a space!")
+      #      if(spaceCanBeTraversed(space, warMachine, mvmt, ignoreEnemyUnits))
+      if((space.movement <= mvmt ||(warMachine.isFlying && 1 <= mvmt)) && mvmt > space.spaceMvmt && \
+      !( (  space.occoupiedWM && (space.occoupiedWM.commander != warMachine.commander && !ignoreEnemyUnits)) \
+      || (space.terrain.class == Mountain && (warMachine.class != (Infantry || Mech) && !warMachine.isFlying)) \
+      || (space.terrain.class == Sea && (!warMachine.isFlying && !warMachine.isSailing)) \
+      || (space.terrain.class != Sea && space.terrain.class != Shoal && warMachine.isSailing)))
+        p("found a space!")
         # space.setSpaceMvmt(mvmt)
         if(warMachine.isFlying)
-          p("Adding a tmpNode, mvmt:" + (mvmt - 1).to_s + ", unit:" + warMachine.class.to_s)
+          #          p("Adding a tmpNode, mvmt:" + (mvmt - 1).to_s + ", unit:" + warMachine.class.to_s)
           tmpPathNode = PathNode.new(parentPathNode,space,mvmt - 1)
           applicableSpaceArr.push(tmpPathNode)
         else
-          p("Adding a tmpNode, mvmt:" + (mvmt - space.movement).to_s + ", unit:" + warMachine.class.to_s)
+          #          p("Adding a tmpNode, mvmt:" + (mvmt - space.movement).to_s + ", unit:" + warMachine.class.to_s)
           tmpPathNode = PathNode.new(parentPathNode,space,mvmt - space.movement)
           applicableSpaceArr.push(tmpPathNode)
         end
@@ -636,8 +685,10 @@ end
 def move(warMachine, spaces) #animation, setting/unsetting spaces
   timeSum = 0
   moving = true
+
   spaceArr = spaces.reverse
   spaceArrDup = spaceArr.dup
+  lastSpace = spaceArr.first
   while moving
     seconds_passed = @clock.tick().seconds
 
@@ -649,8 +700,18 @@ def move(warMachine, spaces) #animation, setting/unsetting spaces
       x = spaceArr.pop
       @field.removeWM(warMachine)
       if(x == nil)
-        p("HEY! IT'S ABOUT TO FAIL! the space doesnt exist. dumping info:")
-        p("unit: " + warMachine.class.to_s + " located:" + warMachine.getCord.to_s + ", spaces" )
+        p("HEY! IT'S ABOUT TO FAIL!  x is nil!. dumping info:")
+        p("unit: " + warMachine.class.to_s + " cord: " + warMachine.getCord.to_s + ", spaces" )
+        p("just for grins, [4, 12]: " + @field.getSpace([4, 12]).occoupiedWM.to_s  )
+        for space in spaceArrDup
+          p(space.getCord.to_s)
+        end
+        gets
+
+      end
+      if(x == lastSpace && x.occoupiedWM != nil && !(warMachine.class == Infantry || warMachine.class == Mech))
+        p("HEY! IT'S ABOUT TO FAIL!  the last space has a wm on it!. dumping info:")
+        p("unit: " + warMachine.class.to_s + " other unit:" + x.occoupiedWM.class.to_s + " at " + x.getCord.to_s + ", spaces" )
         p("just for grins, [4, 12]: " + @field.getSpace([4, 12]).occoupiedWM.to_s  )
         for space in spaceArrDup
           p(space.getCord.to_s)
@@ -950,7 +1011,7 @@ def attackUnit(unit, currentPlayer, listOfPlayers)
           targetSpaces.concat(getNeighboringSpaces(space))
         end
         targetSpaces = targetSpaces.uniq()
-        targetSpaces.delete_if{|x| x.occoupiedWM != nil}
+        targetSpaces.delete_if{|x|  x == nil || x.occoupiedWM != nil}
         for space in targetSpaces
           p(space.getCord().to_s)
         end
@@ -1031,6 +1092,7 @@ def retreat(unit, citySpaces)
         p("unit path length ref:" + unitPath.size.to_s)
         p("path to city size:" + pathToCity.size.to_s + ", unitPath size:" + unitPath.size.to_s)
       else
+        unitPath = []
         p("targetspace was null")
       end
       #    if(unitPath.size > 0)
@@ -1066,19 +1128,6 @@ def filterPathOfEnemyUnits(pathToCity, unit)
   return pathToReturn
 end
 
-#old method, redone to be correct/better
-#def dropSpacesWithUnits(unitPath)
-#  p("before unitPath size:"+ unitPath.size.to_s)
-#  i = unitPath.size-1
-#  while(unitPath.size>0  && unitPath.at(i).occoupiedWM != nil) #if size is one, then were're on the spot of our current wm
-#    p("found a unit and size>0. i:" + i.to_s)
-#    unitPath = unitPath[0...-1] #drops last unit
-#    i = unitPath.size-1
-#  end
-#  p("after unitPath size:"+ unitPath.size.to_s)
-#  return unitPath
-#end
-
 def spaceIsDangerous(space)
   return @dangerZones.include?(space)
 end
@@ -1088,6 +1137,7 @@ def openEnoughSpace(space, numOpenEnough)
     return true #the space itself is assuemd opened from refactorBestPath method
   elsif(numOpenEnough == 2) #
     spaces = getNeighboringSpaces(space)
+    spaces.delete_if{|x| x == nil}
     for space in spaces
       if space.occoupiedWM == nil
         return true
@@ -1279,8 +1329,13 @@ end
 
 def deliverUnitToCity(unit,enemyCities)
   isClose = false
-  pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, enemyCities, unit, true),[]).reverse
-  if(pathToCity.size > 0)
+  pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, enemyCities, unit, false),[]).reverse
+  if(pathToCity.size == 0)
+    pathToCity = genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord), 500, enemyCities, unit, true),[]).reverse
+    pathToCity = filterPathOfEnemyUnits(pathToCity, unit)
+  end
+
+  if(pathToCity.size > 0 && pathToCity.last != @field.getSpace(unit.getCord))
     targetCity = pathToCity.last
     pathToCity.shift
     unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
@@ -1344,6 +1399,7 @@ def getAsFarAsPossible(unit, pathToCity, movement)
       end
     end
   end
+
   return unitPath
 end
 
@@ -1364,7 +1420,7 @@ def supplyNearbyUnit(unit,supplyUnit)
         nextUnit = space.occoupiedWM
 
       elsif space.occoupiedWM != nil && nextUnit != nil
-        if(space.occoupiedWM.fuel *1.0/(space.occoupiedWM.maxFuel*1.0)) > (nextUnit.fuel*1.0/nextUnit.maxFuel*1.0) || (space.occoupiedWM.ammo *1.0 / (space.occoupiedWM.maxAmmo *1.0)) > (nextUnit.ammo*1.0 / nextUnit.maxAmmo*1.0)
+        if(space.occoupiedWM.fuel() *1.0/(space.occoupiedWM.maxFuel()*1.0)) > (nextUnit.fuel()*1.0/nextUnit.maxFuel()*1.0) || (space.occoupiedWM.ammo() *1.0 / (space.occoupiedWM.maxAmmo() *1.0)) > (nextUnit.ammo()*1.0 / nextUnit.maxAmmo()*1.0)
           nextUnit = space.occoupiedWM
         end
       end
@@ -1384,7 +1440,7 @@ def findInf(unit, currentPlayer)
       space = @field.getSpace(unit.getCord)
       infSpaces << space
       infSpaces.concat(getNeighboringSpaces(space))
-      infSpaces.delete_if{|x| x== nil}
+      infSpaces.delete_if{|x| x== nil || x.occoupiedWM != nil}
       p("num neighbors:"+ getNeighboringSpaces(space).size.to_s)
     end
   end
@@ -2077,6 +2133,28 @@ def updateConsoleLockUnit(terrain,target,damagePercentage)
   @sprites << @console
 end
 
+def crtlWait() #dont work :(
+  debug = true
+  crtlLoopTime = 0.7
+  sumTime =  @clock.tick().seconds
+  while(debug)
+    seconds_passed = @clock.tick().seconds
+    sumTime += seconds_passed
+    update(seconds_passed)
+    @event_queue.each do |event|
+      case event
+      when Events::QuitRequested
+        throw :rubygame_quit
+      end
+    end
+    if(sumTime - crtlLoopTime > 0)
+      debug = false
+    else
+      p("seconds_passed:" + sumTime.to_s + " ctrlLoopTime:" + crtlLoopTime.to_s)
+    end
+  end
+end
+
 def main()
   setup(true)
 
@@ -2119,7 +2197,6 @@ def main()
       usuableUnits = infUnits + usuableUnits
 
       for unit in usuableUnits
-        p("press key for next unit")
         debug = true
         crtlLoopTime = 0.7
         sumTime =  @clock.tick().seconds
