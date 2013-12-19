@@ -62,7 +62,7 @@ def setup(useUnits)
   @event_queue = EventQueue.new
   @event_queue.enable_new_style_events
 
-  player1 = AI.new("RED",1, 1)
+  player1 = Player.new("RED",1)
   player2 = AI.new("BLUE",2, 1)
 
   @listOfP = [player1,player2]
@@ -84,9 +84,9 @@ def setup(useUnits)
     ]
 
     p2Units = [
-      mTank2 = MedTank.new(6,18,2),
+      #  mTank2 = MedTank.new(6,18,2),
       #      tank = Tank.new(1,18,2),
-      art2 = Artillery.new(1,17,2),
+      # art2 = Artillery.new(1,17,2),
       #      art3 = Artillery.new(1,1,2),
       #      rocket = Rocket.new(0,2,2),
       aa = AntiAir.new(1,15,2),
@@ -95,8 +95,8 @@ def setup(useUnits)
       #      recon = Recon.new(3,9,2),
       #      mech = Mech.new(1,9,2),
       #bomb2 = Bomber.new(8,16,2),
-      mech2 = Mech.new(8,18,2),
-      apc = APC.new(8,17,2),
+      #   mech2 = Mech.new(8,18,2),
+      #  apc = APC.new(8,17,2),
     ]
     player1.addUnits(p1Units)
     player2.addUnits(p2Units)
@@ -543,7 +543,7 @@ def optimizeMovePath(startSpace, moveRange, endSpaces, unit, ignoreEnemyUnits)
   #select shortest from the path which gets there first
   p("Optimizing movement")
   startNode = PathNode.new(nil, startSpace, moveRange)
-  allNodesPassed= [startNode.currentNode]
+  allNodesPassed= [startNode]
   currentNodes = [startNode]
   for endSpace in endSpaces
     if(startNode.currentNode == endSpace)
@@ -556,25 +556,64 @@ end
 def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ignoreEnemyUnits)
   spaceFound = false
   solution = nil
+  allSpaces = []
+
   while !spaceFound
     p("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     pathSolutions = []
     newNodes = []
-    for parentNode in currentNodes
-      spaces = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining, unit, ignoreEnemyUnits)
-      p("found " + spaces.size.to_s + " space(s)")
-      p("processing applicable neighboring spaces for space: " + parentNode.currentNode.getCord.to_s)
-      for space in spaces
-        p("space: " + space.currentNode.getCord.to_s)
 
-        if(!allSpacesPassed.include?(space.currentNode))
-          p("space not in all spaces yet!")
-          allSpacesPassed.push(space.currentNode)
-          newNodes.push(space)
-          for endSpace in endSpaces
-            if space.currentNode == endSpace
-              pathSolutions.push(space)
+    for parentNode in currentNodes
+      p("parentNode: " +nodeHistory(parentNode))
+      newPathNodes = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining, unit, ignoreEnemyUnits)
+      p("found " + newPathNodes.size.to_s + " space(s)")
+      p("processing applicable neighboring spaces for space: " + parentNode.currentNode.getCord.to_s + " mvmt:" + parentNode.movementRemaining.to_s)
+
+      deleteFromSpaces = []
+      deleteFromAppNodes = []
+      #  p("for space: " + parentNode.currentNode.getCord.to_s)
+      for node in allSpacesPassed
+        for newNode in newPathNodes
+          if(newNode.currentNode == node.currentNode)
+            if (unit.isFlying)
+              if(newNode.movementRemaining > node.movementRemaining)
+                deleteFromAppNodes << node
+                p("deleting " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s + " for new node " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s)
+              else
+                deleteFromSpaces << newNode
+                p("deleting " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s + " for new node " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s)
+
+              end
+            else
+              if(newNode.movementRemaining > node.movementRemaining)
+                deleteFromAppNodes << node
+                p("deleting " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s + " for new node " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s)
+
+              else
+                deleteFromSpaces << newNode
+                p("deleting " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s + " for new node " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s)
+
+              end
             end
+          end
+        end
+      end
+
+      newPathNodes.delete_if{|x| deleteFromSpaces.include?(x)}
+      allSpacesPassed.delete_if{|x| deleteFromAppNodes.include?(x)}
+
+      for space in newPathNodes
+#        p("newPathNode: " +nodeHistory(space))
+        p("space: " + space.currentNode.getCord.to_s)
+        drawSpace = space.currentNode
+        allSpaces << drawSpace
+        drawSpace.toggleIsCursor
+        allSpacesPassed.push(space) ##
+        newNodes.push(space)
+
+        for endSpace in endSpaces
+          if space.currentNode == endSpace
+            pathSolutions.push(space)
           end
         end
       end
@@ -583,25 +622,49 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ig
     if(!pathSolutions.empty?)
       p("solutions is not empty")
       solution = pathSolutions.at(0)
+      #      pathTotalMvmts = Hash.new(0)
+      #
+      #      for path in pathSolutions
+      #        mvmt = 0
+      #        for spaceNode in path
+      #          mvmt = mvmt + spaceNode.movementRemaining
+      #        end
+      #        pathTotalMvmts[paths] = mvmt
+      #      end
+      #      solution = pathTotalMvmts.sort_by{|key,val| val}.at(0).at(0)
       for path in pathSolutions
         if path.movementRemaining > solution.movementRemaining
           solution = path
         end
       end
       spaceFound = true
-      p("found a solution path!")
+      p("found a solution path! num of solutions:" + pathSolutions.length.to_s)
     end
     if(currentNodes.empty?)
       solution = nil
       spaceFound = true
       p("Could not find a path!!!")
     end
-    newNodes = newNodes.uniq {|n| n.currentNode} #should not be necessairy
+#    p("newNodes size before uniq: " + newNodes.length.to_s)
+#    newNodes = newNodes.uniq {|n| n.currentNode} #should not be necessairy
+#    p("newNodes size after uniq: " + newNodes.length.to_s)
+
     currentNodes = newNodes
   end
 
   return solution
   #  return optimizeMovePathRecursion(newNodes, allSpacesPassed, endSpaces, unit)
+end
+
+def nodeHistory(node)
+  parentNode = node.parentPathNode
+  returnString = "The history for node (mvmt:"+ node.movementRemaining.to_s+") " + node.currentNode.getCord.to_s + ": "
+  while parentNode != nil
+    tmpNode = parentNode
+    returnString = returnString + tmpNode.currentNode.getCord.to_s + ", "
+    parentNode = tmpNode.parentPathNode
+  end
+  return returnString
 end
 
 def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, ignoreEnemyUnits)
@@ -615,7 +678,7 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, ignoreEnemy
   #&& !space.occoupiedWM
 
   tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
-  p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s)
+  p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s + " mvmt: " + mvmt.to_s)
   p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
   applicableSpaceArr = []
   for space in tmpSpaceArr
@@ -992,7 +1055,17 @@ def attackUnit(unit, currentPlayer, listOfPlayers)
 
       if(targetSpace != nil) ##GOTTA CHANGE THIS TO DO SOMETHING ELSE
         p("going to move. target space: " + targetSpace.getCord.to_s + " with target: " + target.class.to_s)
-        move(unit, genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,[targetSpace],unit, false),[]).reverse)
+        attackPath =  genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,[targetSpace],unit, false),[]).reverse
+#        for space in attackPath
+#          space.toggleIsCursor
+#          p("This is the path it chose")
+#          gets
+#          @sprites.concat([space])
+#        end
+        move(unit, attackPath)
+#        for space in attackPath
+#          @sprites.delete([space])
+#        end
         attack(unit, target, currentPlayer)
       else
         p("HEY! THAT WIERD ERROR OCCURED.")

@@ -39,11 +39,19 @@ Dir["./*.rb"].each {|file|
 #end
 #p("end num: " + num.to_s)
 
-10.times do
-   p("rand: " + Random.rand(5).to_s)  
+#10.times do
+#   p("rand: " + Random.rand(5).to_s)  
+#  
+#end
+#
+#p("ah")
+#gets()
+#p("sure")
   
-end
-
-p("ah")
-gets()
-p("sure")
+  h = Hash.new(0)
+  h['a']= 3
+  h['b']= 4
+  h['c']= 2
+    
+#p(h.sort_by{|key,val| val}.key.to_s)
+  
