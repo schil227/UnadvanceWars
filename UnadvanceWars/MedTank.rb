@@ -161,13 +161,7 @@ class MedTank
   end
 
   def restockFuel()
-    @ammo = 5 
-	 @maxammo = 5 
-	 @maxammo = 5 
-	 @maxammo = 5 
-	 @maxammo = 5 
-	 @maxammo = 5 
-	 @maxammo = 50
+    @fuel = 50
   end
 
   def decFuel(num)

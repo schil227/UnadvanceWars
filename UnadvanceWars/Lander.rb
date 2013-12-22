@@ -205,7 +205,7 @@ class Lander
   end
 
   def restockFuel()
-    @ammo = 50
+    @fuel = 50
   end
 
   def decFuel(num)

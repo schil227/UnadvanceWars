@@ -160,7 +160,7 @@ class Recon
   end
 
   def restockFuel()
-    @ammo = 70
+    @fuel = 70
   end
 
   def decFuel(num)

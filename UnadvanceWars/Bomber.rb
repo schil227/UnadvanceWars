@@ -160,7 +160,7 @@ class Bomber
   end
 
   def restockFuel()
-    @ammo = 9 
+    @fuel = 9 
 	 @maxammo = 9 
 	 @maxammo = 9 
 	 @maxammo = 9 

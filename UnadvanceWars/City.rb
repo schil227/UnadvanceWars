@@ -97,9 +97,9 @@ class City
     return imageName
   end
 
-  def conquer(unit)
+  def conquer(unitHealth, unitCommander )
     playerUnderSiege = @occoupiedPlayer
-    @cityLevel -= unit.health
+    @cityLevel -= unitHealth
     if(@cityLevel < 1)
 
       if(playerUnderSiege != nil)
@@ -107,8 +107,8 @@ class City
         playerUnderSiege.removeCitySpace(@space)
       end
       @cityLevel = 20
-      setOccoupiedPlayer(unit.commander)
-      unit.commander.addCitySpace(@space)
+      setOccoupiedPlayer(unitCommander)
+      unitCommander.addCitySpace(@space)
       if(@isCapital)
         return true
       end

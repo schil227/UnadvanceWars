@@ -8,7 +8,8 @@ Dir["./*.rb"].each {|file|
 for file in files
   f = File.open(file,'r')
   text = f.read()
-  str = /@ammo = \d+/.match(text)
+#  str = /@maxFuel = \d+/.match(text)
+  str = /@maxFuel = 50/.match(text)
   if(str != nil)
     str = str[0]
     p"The str:"+ str
@@ -22,16 +23,16 @@ for file in files
 #        str = "@image.blit  on_surface, @rect"
 #    toAdd = "@image.blit  on_surface, @rect \n\t @healthImage.blit  on_surface, @rect "
    
-    
-str = "@maxAmmo != 0 && return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2"
-toAdd = "return @maxAmmo != 0 &&  (@ammo*1.0)/(@maxAmmo*1.0) < 0.2" 
+#str = "restockFuel()\n    @ammo ="
+#toAdd = "restockFuel()\n    @fuel ="
+ 
 
 
-    text = text.gsub(str,toAdd)
+#    text = text.gsub(str,toAdd)
     p(text)
-    File.open(file,'w') do |out|
-      out << text
-    end
+#    File.open(file,'w') do |out|
+#      out << text
+#    end
   end
 end
 

@@ -155,7 +155,7 @@ class AntiAir
   end
 
   def restockFuel()
-    @ammo = 60
+    @fuel = 60
   end
 
   def decFuel(num)

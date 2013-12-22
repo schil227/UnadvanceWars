@@ -564,10 +564,10 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ig
     newNodes = []
 
     for parentNode in currentNodes
-      p("parentNode: " +nodeHistory(parentNode))
+      #      p("parentNode: " +nodeHistory(parentNode))
       newPathNodes = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining, unit, ignoreEnemyUnits)
-      p("found " + newPathNodes.size.to_s + " space(s)")
-      p("processing applicable neighboring spaces for space: " + parentNode.currentNode.getCord.to_s + " mvmt:" + parentNode.movementRemaining.to_s)
+      #      p("found " + newPathNodes.size.to_s + " space(s)")
+      #    p("processing applicable neighboring spaces for space: " + parentNode.currentNode.getCord.to_s + " mvmt:" + parentNode.movementRemaining.to_s)
 
       deleteFromSpaces = []
       deleteFromAppNodes = []
@@ -578,20 +578,20 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ig
             if (unit.isFlying)
               if(newNode.movementRemaining > node.movementRemaining)
                 deleteFromAppNodes << node
-                p("deleting " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s + " for new node " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s)
+                #                p("deleting " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s + " for new node " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s)
               else
                 deleteFromSpaces << newNode
-                p("deleting " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s + " for new node " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s)
+                #                p("deleting " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s + " for new node " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s)
 
               end
             else
               if(newNode.movementRemaining > node.movementRemaining)
                 deleteFromAppNodes << node
-                p("deleting " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s + " for new node " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s)
+                #                p("deleting " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s + " for new node " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s)
 
               else
                 deleteFromSpaces << newNode
-                p("deleting " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s + " for new node " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s)
+                #                p("deleting " + newNode.currentNode.getCord.to_s + " with mvmt " + newNode.movementRemaining.to_s + " for new node " + node.currentNode.getCord.to_s + " with mvmt " + node.movementRemaining.to_s)
 
               end
             end
@@ -604,7 +604,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ig
 
       for space in newPathNodes
         #        p("newPathNode: " +nodeHistory(space))
-        p("space: " + space.currentNode.getCord.to_s)
+        #        p("space: " + space.currentNode.getCord.to_s)
         drawSpace = space.currentNode
         allSpaces << drawSpace
         drawSpace.toggleIsCursor
@@ -618,7 +618,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ig
         end
       end
     end
-    p("found all currentNodes. size: " + currentNodes.size.to_s)
+    #    p("found all currentNodes. size: " + currentNodes.size.to_s)
     if(!pathSolutions.empty?)
       p("solutions is not empty")
       solution = pathSolutions.at(0)
@@ -678,20 +678,20 @@ def getApplicableNeighboringSpaces(parentPathNode, mvmt, warMachine, ignoreEnemy
   #&& !space.occoupiedWM
 
   tmpSpaceArr = [nSpace, sSpace, eSpace, wSpace]
-  p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s + " mvmt: " + mvmt.to_s)
-  p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
+  # p("parent space is at " + parentSpace.getCord.to_s + "with terrain type " + parentSpace.terrain.class.to_s + " mvmt: " + mvmt.to_s)
+  # p("found " + tmpSpaceArr.size.to_s + " neighbor spaces")
   applicableSpaceArr = []
   for space in tmpSpaceArr
-    p("trying a new space, mvmt:" + mvmt.to_s + " ignoreUnits: " + ignoreEnemyUnits.to_s )
+    # p("trying a new space, mvmt:" + mvmt.to_s + " ignoreUnits: " + ignoreEnemyUnits.to_s )
     if(space != nil && mvmt > 0)
-      p("space is not nil and mvmt > 0, cord:" + space.getCord.to_s)
+      #  p("space is not nil and mvmt > 0, cord:" + space.getCord.to_s)
       #      if(spaceCanBeTraversed(space, warMachine, mvmt, ignoreEnemyUnits))
       if((space.movement <= mvmt ||(warMachine.isFlying && 1 <= mvmt)) && mvmt > space.spaceMvmt && \
       !( (  space.occoupiedWM && (space.occoupiedWM.commander != warMachine.commander && !ignoreEnemyUnits)) \
       || (space.terrain.class == Mountain && (warMachine.class != (Infantry || Mech) && !warMachine.isFlying)) \
       || (space.terrain.class == Sea && (!warMachine.isFlying && !warMachine.isSailing)) \
       || (space.terrain.class != Sea && space.terrain.class != Shoal && warMachine.isSailing)))
-        p("found a space!")
+        #   p("found a space!")
         # space.setSpaceMvmt(mvmt)
         if(warMachine.isFlying)
           #          p("Adding a tmpNode, mvmt:" + (mvmt - 1).to_s + ", unit:" + warMachine.class.to_s)
@@ -1288,7 +1288,6 @@ def refactorBestPath(unit, unitPath, requiredOpenness, blackSpaces) #returns an 
     currentSpace = unitPath.last
     unitPath = unitPath[0...-1]
 
-    #breaks while loop with a return... not sure if kosher
     if(possibleSolutions.size > 0  && goodSpace == nil && Random.rand(5) < 2)
       rand = Random.rand(possibleSolutions.size)
       p("going with a possibly dangerous spot, randomlyChosen:" + rand.to_s + ", spot: " + possibleSolutions.at(0).getCord.to_s)
@@ -1298,9 +1297,14 @@ def refactorBestPath(unit, unitPath, requiredOpenness, blackSpaces) #returns an 
 
   t2 = Time.new()
   p("time2:" + t2.to_s)
-  if(goodSpace != nil && Random.rand(10) > 3)
-    p("returning the good space")
-    return goodSpace
+  if(goodSpace != nil )
+    if(possibleSolutions.empty?)
+      p("returning the good space")
+      return goodSpace
+    elsif(Random.rand(10) > 3)
+      p("returning the good space")
+      return goodSpace
+    end
   elsif(!possibleSolutions.empty?)
     p("returning the ok space")
     return possibleSolutions.at(Random.rand(possibleSolutions.size) % possibleSolutions.size)
@@ -1372,7 +1376,7 @@ def tryCapturing(unit)
   p("moved, capping")
   terrain = pathToCity.last.terrain
   commanderUnderSiege = terrain.occoupiedPlayer
-  isCapital = terrain.conquer(unit)
+  isCapital = terrain.conquer(unit.health, unit.commander)
   if(isCapital)
     destroyAllUnits(commanderUnderSiege)
   end
@@ -2102,7 +2106,7 @@ def unitAction(warMachine, currentPlayer, previousCords)
               @sprites.delete(space)
             end
             commanderUnderSiege = terrain.occoupiedPlayer
-            isCapital = terrain.conquer(warMachine)
+            isCapital = terrain.conquer(warMachine.health, warMachine.commander)
             if(isCapital)
               destroyAllUnits(commanderUnderSiege)
             end
@@ -2304,7 +2308,7 @@ def main()
           p("action:  keep on cappin unit:" + unit.class.to_s)
           terrain = @field.getSpace(unit.getCord).terrain
           commanderUnderSiege = terrain.occoupiedPlayer
-          isCapital = terrain.conquer(unit)
+          isCapital = terrain.conquer(unit.health, unit.commander)
           if(isCapital)
             destroyAllUnits(commanderUnderSiege)
           end

@@ -186,7 +186,7 @@ class TChopper
   end
 
   def restockFuel()
-    @ammo = 99
+    @fuel = 99
   end
 
   def decFuel(num)
