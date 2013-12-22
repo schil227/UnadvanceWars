@@ -24,6 +24,9 @@ class Lander
     @stepBool = true
 
     @health = 10 
+	 @fuelImage = (Surface.load "data/blank.gif") 
+	 @ammoImage = (Surface.load "data/blank.gif") 
+	   
 	 @healthImage = (Surface.load "data/blank.gif") 
  
     @power = 10*(@health * 0.1)
@@ -142,7 +145,7 @@ class Lander
   end
 
   def convoyedUnits()
-    #jeeze, I should incorporate more blocks in my code like this. Lambda calc rocks!
+    #jeeze, I should incorporate more blocks in my code like self. Lambda calc rocks!
     return [@convoyedUnit, @convoyedUnit2].delete_if{|x| x == nil}
   end
 
@@ -154,7 +157,7 @@ class Lander
     return (@convoyedUnit == nil || @convoyedUnit2 == nil)
   end
 
-  #it is implied that this option will be unavailable if there is no room,
+  #it is implied that self option will be unavailable if there is no room,
   #if one is closed then the other is open, and vise virsa
   def convoy(warMachine)
     if(!@convoyedUnit)
@@ -166,7 +169,7 @@ class Lander
 
   #need to update functionality for multiple WMS
   def deploy()
-    #getting to this step implies that one of the two spots are occoupied by units
+    #getting to self step implies that one of the two spots are occoupied by units
     if(@convoyedUnit != nil)
       warMachine = @convoyedUnit
       @convoyedUnit = nil
@@ -214,7 +217,7 @@ class Lander
   end
 
    def needsAmmo()
-    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+    return @maxAmmo != 0 &&  (@ammo*1.0)/(@maxAmmo*1.0) < 0.2 && @maxAmmo != 0
   end
 
    def needsSupply()
@@ -260,9 +263,17 @@ class Lander
     if(@timeSum >= 5)
       @timeSum = 0
       if(@stepBool)
-        @image = (Surface.load(@imageName + "2.gif"))
-      else
-        @image = (Surface.load(@imageName + "1.gif"))
+        @image = (Surface.load(@imageName + "2.gif")) 
+			 @fuelImage = (Surface.load "data/blank.gif")  
+			 if(self.needsAmmo()) 
+				 @ammoImage = (Surface.load "data/lowAmmo.gif") 
+			 end 
+	   else 
+			 @image = (Surface.load(@imageName + "1.gif")) 
+			 @ammoImage = (Surface.load "data/blank.gif") 
+			 if(self.needsFuel()) 
+				 @fuelImage = (Surface.load "data/lowFuel.gif") 
+			 end 
       end
       @stepBool = !@stepBool
     end
@@ -271,9 +282,10 @@ class Lander
 
   def draw  on_surface
     @image.blit  on_surface, @rect 
-	 @healthImage.blit  on_surface, @rect  
-	 @healthImage.blit  on_surface, @rect  
 	 @healthImage.blit  on_surface, @rect 
+	 @fuelImage.blit  on_surface, @rect 
+	  @ammoImage.blit  on_surface, @rect 
+	  
   end
 
 end

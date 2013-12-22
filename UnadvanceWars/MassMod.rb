@@ -23,10 +23,10 @@ for file in files
 #    toAdd = "@image.blit  on_surface, @rect \n\t @healthImage.blit  on_surface, @rect "
    
     
-str = "healthNum > 0 || healthNum < 10"
-toAdd = "healthNum > 0 && healthNum < 10" 
+str = "@maxAmmo != 0 && return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2"
+toAdd = "return @maxAmmo != 0 &&  (@ammo*1.0)/(@maxAmmo*1.0) < 0.2" 
 
-    
+
     text = text.gsub(str,toAdd)
     p(text)
     File.open(file,'w') do |out|

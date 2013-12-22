@@ -897,6 +897,10 @@ def movePath(warMachine)
           end
         elsif(event.key == :d)#261
 =begin
+          ##Edit: 12/21/13: after scrolling past this every now and then, I'm kind of
+             reminded of how perhaps old tribal rulers would be killd and their remains
+             left for all to see after the change of management. consider this a warning,
+             other algorithms.
           ##This is the code that used to be run for each key pressed. Thankfully
           #its been refactored a ton and now relies mostly on the recursive
           #method genMoveRange. This code will be left inplace as a record to

@@ -24,6 +24,9 @@ class BChopper
     @stepBool = true
 
     @health = 10 
+	 @fuelImage = (Surface.load "data/blank.gif") 
+	 @ammoImage = (Surface.load "data/blank.gif") 
+	   
 	 @healthImage = (Surface.load "data/blank.gif") 
  
     @power = 10*(@health * 0.1)
@@ -173,7 +176,7 @@ class BChopper
   end
 
    def needsAmmo()
-    return (@ammo*1.0)/(@maxAmmo*1.0) < 0.2
+    return @maxAmmo != 0 &&  (@ammo*1.0)/(@maxAmmo*1.0) < 0.2 && @maxAmmo != 0
   end
 
    def needsSupply()
@@ -219,9 +222,17 @@ class BChopper
     if(@timeSum >= 5)
       @timeSum = 0
       if(@stepBool)
-        @image = (Surface.load(@imageName + "2.gif"))
-      else
-        @image = (Surface.load(@imageName + "1.gif"))
+        @image = (Surface.load(@imageName + "2.gif")) 
+			 @fuelImage = (Surface.load "data/blank.gif")  
+			 if(self.needsAmmo()) 
+				 @ammoImage = (Surface.load "data/lowAmmo.gif") 
+			 end 
+	   else 
+			 @image = (Surface.load(@imageName + "1.gif")) 
+			 @ammoImage = (Surface.load "data/blank.gif") 
+			 if(self.needsFuel()) 
+				 @fuelImage = (Surface.load "data/lowFuel.gif") 
+			 end 
       end
       @stepBool = !@stepBool
     end
@@ -230,9 +241,10 @@ class BChopper
 
   def draw  on_surface
     @image.blit  on_surface, @rect 
-	 @healthImage.blit  on_surface, @rect  
-	 @healthImage.blit  on_surface, @rect  
 	 @healthImage.blit  on_surface, @rect 
+	 @fuelImage.blit  on_surface, @rect 
+	  @ammoImage.blit  on_surface, @rect 
+	  
   end
 
 end
