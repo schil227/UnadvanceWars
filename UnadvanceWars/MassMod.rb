@@ -13,12 +13,24 @@ for file in files
     str = str[0]
     p"The str:"+ str
     num = /\d+/.match(str)[0]
-    toAdd = "def restockAmmo()\n    @ammo = "+num+" \n  end\n\n"
-    str = "def restockAmmo()\n    @ammo = "+num+" \n\t @maxAmmo = "+num+"\n  end\n\n"#"@maxammo = "+num+"\n    @maxammo = "+num+"\n    @maxammo = "+num+"\n    @maxammo = "+num+"\n    @maxammo = "+num+"\n"
+#    str = "@health = 10"
+#    toAdd = "@health = 10 \n\t @healthImage = (Surface.load \"data/blank.gif\") \n "
+    
+# str = "@health = @health+num"
+#   toAdd = "@health = @health+num \n\t healthNum = @health.ceil \n\t if(healthNum != 0 || healthNum != 10) \n\t\t @healthImage = (Surface.load \"data/\" + healthNum.to_s + \".gif\") \n\t else \n\t\t @healthImage = (Surface.load \"data/blank.gif\") \n\t end \n\t"
+
+#        str = "@image.blit  on_surface, @rect"
+#    toAdd = "@image.blit  on_surface, @rect \n\t @healthImage.blit  on_surface, @rect "
+   
+    
+str = "healthNum > 0 || healthNum < 10"
+toAdd = "healthNum > 0 && healthNum < 10" 
+
+    
     text = text.gsub(str,toAdd)
     p(text)
     File.open(file,'w') do |out|
-      out << text 
+      out << text
     end
   end
 end

@@ -62,7 +62,7 @@ def setup(useUnits)
   @event_queue = EventQueue.new
   @event_queue.enable_new_style_events
 
-  player1 = Player.new("RED",1)
+  player1 = AI.new("RED",1, 1)
   player2 = AI.new("BLUE",2, 1)
 
   @listOfP = [player1,player2]
@@ -70,33 +70,33 @@ def setup(useUnits)
   if(useUnits)
     p1Units = [
       mTank = MedTank.new(7,8,1),
-      art = Artillery.new(2,3,1),
+      #      art = Artillery.new(2,3,1),
       tank2 = Tank.new(0,4,1),
       inf = Infantry.new(6,7,1),
-      #  chop = BChopper.new(8,15,1),
-      #bat = Battleship.new(3,11,1),
-      #bomb = Bomber.new(4,5,1),
-      # crsr = Cruiser.new(3,10,1),
+      #       chop = BChopper.new(8,15,1),
+      #      bat = Battleship.new(3,11,1),
+      #      bomb = Bomber.new(4,5,1),
+      #       crsr = Cruiser.new(3,10,1),
       recon1 = Recon.new(2,8,1),
-      # mech1 = Mech.new(2,9,1),
+      mech1 = Mech.new(2,9,1),
       apc = APC.new(4,11,1),
-      #lan = Lander.new(6,11,1),
+      #      lan = Lander.new(6,11,1),
     ]
 
     p2Units = [
-      #  mTank2 = MedTank.new(6,18,2),
-      #      tank = Tank.new(1,18,2),
-      # art2 = Artillery.new(1,17,2),
-      #      art3 = Artillery.new(1,1,2),
-      #      rocket = Rocket.new(0,2,2),
+      mTank2 = MedTank.new(6,18,2),
+      #            tank = Tank.new(1,18,2),
+      art2 = Artillery.new(1,17,2),
+      #            art3 = Artillery.new(1,1,2),
+      rocket = Rocket.new(3,14,2),
       aa = AntiAir.new(1,15,2),
-      #fgtr = Fighter.new(2,14,2),
-      #      sub = Submarine.new(2,11,2),
-      #      recon = Recon.new(3,9,2),
-      #      mech = Mech.new(1,9,2),
-      #bomb2 = Bomber.new(8,16,2),
-      #   mech2 = Mech.new(8,18,2),
-      #  apc = APC.new(8,17,2),
+      #      fgtr = Fighter.new(2,14,2),
+      #            sub = Submarine.new(2,11,2),
+      #            recon = Recon.new(3,9,2),
+      #            mech = Mech.new(1,9,2),
+      #      bomb2 = Bomber.new(8,16,2),
+      mech2 = Mech.new(8,18,2),
+      apc = APC.new(8,17,2),
     ]
     player1.addUnits(p1Units)
     player2.addUnits(p2Units)
@@ -127,51 +127,51 @@ def attack(attacker, attacked,currentPlayer)
   p("before attack:")
   p("Attaking " + attacker.class.to_s + " health: " + (attacker.health).to_s)
   p("Defending " + attacked.class.to_s + " health: " + (attacked.health).to_s)
-  attackerSpace = @field.getSpace(attacker.getCord)
-  attackerSpace.toggleIsCursor
-  attackedSpace = @field.getSpace(attacked.getCord)
-  attackedSpace.toggleIsCursor
-  p("attackerSpace:"+ attackerSpace.class.to_s)
-  @sprites.concat([attackerSpace])
-  debug = true
-  crtlLoopTime = 0.7
-  sumTime =  @clock.tick().seconds
-  while(debug)
-    seconds_passed = @clock.tick().seconds
-    sumTime += seconds_passed
-    update(seconds_passed)
-    @event_queue.each do |event|
-      case event
-      when Events::QuitRequested
-        throw :rubygame_quit
-      end
-    end
-    if(sumTime - crtlLoopTime > 0)
-      debug = false
-    else
-      p("seconds_passed:" + sumTime.to_s + " ctrlLoopTime:" + crtlLoopTime.to_s)
-    end
-  end
-  @sprites.concat([attackedSpace])
-  debug = true
-  crtlLoopTime = 0.7
-  sumTime =  @clock.tick().seconds
-  while(debug)
-    seconds_passed = @clock.tick().seconds
-    sumTime += seconds_passed
-    update(seconds_passed)
-    @event_queue.each do |event|
-      case event
-      when Events::QuitRequested
-        throw :rubygame_quit
-      end
-    end
-    if(sumTime - crtlLoopTime > 0)
-      debug = false
-    else
-      p("seconds_passed:" + sumTime.to_s + " ctrlLoopTime:" + crtlLoopTime.to_s)
-    end
-  end
+  #  attackerSpace = @field.getSpace(attacker.getCord)
+  #  attackerSpace.toggleIsCursor
+  #  attackedSpace = @field.getSpace(attacked.getCord)
+  #  attackedSpace.toggleIsCursor
+  #  p("attackerSpace:"+ attackerSpace.class.to_s)
+  #  @sprites.concat([attackerSpace])
+  #  debug = true
+  #  crtlLoopTime = 0.7
+  #  sumTime =  @clock.tick().seconds
+  #  while(debug)
+  #    seconds_passed = @clock.tick().seconds
+  #    sumTime += seconds_passed
+  #    update(seconds_passed)
+  #    @event_queue.each do |event|
+  #      case event
+  #      when Events::QuitRequested
+  #        throw :rubygame_quit
+  #      end
+  #    end
+  #    if(sumTime - crtlLoopTime > 0)
+  #      debug = false
+  #    else
+  #      p("seconds_passed:" + sumTime.to_s + " ctrlLoopTime:" + crtlLoopTime.to_s)
+  #    end
+  #  end
+  #  @sprites.concat([attackedSpace])
+  #  debug = true
+  #  crtlLoopTime = 0.7
+  #  sumTime =  @clock.tick().seconds
+  #  while(debug)
+  #    seconds_passed = @clock.tick().seconds
+  #    sumTime += seconds_passed
+  #    update(seconds_passed)
+  #    @event_queue.each do |event|
+  #      case event
+  #      when Events::QuitRequested
+  #        throw :rubygame_quit
+  #      end
+  #    end
+  #    if(sumTime - crtlLoopTime > 0)
+  #      debug = false
+  #    else
+  #      p("seconds_passed:" + sumTime.to_s + " ctrlLoopTime:" + crtlLoopTime.to_s)
+  #    end
+  #  end
   attacked.decHealth(calcDamage(attacker,attacked)) #would add land def here
   attacker.decAmmo
   if(attacked.health > 0 && attacker.isDirect && attacked.isDirect) #counter attack, D v D only
@@ -185,10 +185,10 @@ def attack(attacker, attacked,currentPlayer)
     p("Attacking " + attacker.class.to_s + " was destroyed!")
     destroy(attacker, attacker.commander)
   end
-  attackerSpace.toggleIsCursor
-  attackedSpace.toggleIsCursor
-  @sprites.delete([attackerSpace])
-  @sprites.delete([attackedSpace])
+  #  attackerSpace.toggleIsCursor
+  #  attackedSpace.toggleIsCursor
+  #  @sprites.delete([attackerSpace])
+  #  @sprites.delete([attackedSpace])
   p("After attack:")
   p("Attaking " + attacker.class.to_s + " health: " + (attacker.health).to_s)
   p("Defending " + attacked.class.to_s + " health: " + (attacked.health).to_s)
@@ -603,7 +603,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ig
       allSpacesPassed.delete_if{|x| deleteFromAppNodes.include?(x)}
 
       for space in newPathNodes
-#        p("newPathNode: " +nodeHistory(space))
+        #        p("newPathNode: " +nodeHistory(space))
         p("space: " + space.currentNode.getCord.to_s)
         drawSpace = space.currentNode
         allSpaces << drawSpace
@@ -645,9 +645,9 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ig
       spaceFound = true
       p("Could not find a path!!!")
     end
-#    p("newNodes size before uniq: " + newNodes.length.to_s)
-#    newNodes = newNodes.uniq {|n| n.currentNode} #should not be necessairy
-#    p("newNodes size after uniq: " + newNodes.length.to_s)
+    #    p("newNodes size before uniq: " + newNodes.length.to_s)
+    #    newNodes = newNodes.uniq {|n| n.currentNode} #should not be necessairy
+    #    p("newNodes size after uniq: " + newNodes.length.to_s)
 
     currentNodes = newNodes
   end
@@ -1056,16 +1056,16 @@ def attackUnit(unit, currentPlayer, listOfPlayers)
       if(targetSpace != nil) ##GOTTA CHANGE THIS TO DO SOMETHING ELSE
         p("going to move. target space: " + targetSpace.getCord.to_s + " with target: " + target.class.to_s)
         attackPath =  genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,[targetSpace],unit, false),[]).reverse
-#        for space in attackPath
-#          space.toggleIsCursor
-#          p("This is the path it chose")
-#          gets
-#          @sprites.concat([space])
-#        end
+        #        for space in attackPath
+        #          space.toggleIsCursor
+        #          p("This is the path it chose")
+        #          gets
+        #          @sprites.concat([space])
+        #        end
         move(unit, attackPath)
-#        for space in attackPath
-#          @sprites.delete([space])
-#        end
+        #        for space in attackPath
+        #          @sprites.delete([space])
+        #        end
         attack(unit, target, currentPlayer)
       else
         p("HEY! THAT WIERD ERROR OCCURED.")
@@ -1286,8 +1286,9 @@ def refactorBestPath(unit, unitPath, requiredOpenness, blackSpaces) #returns an 
 
     #breaks while loop with a return... not sure if kosher
     if(possibleSolutions.size > 0  && goodSpace == nil && Random.rand(5) < 2)
-      p("going with a possibly dangerous spot " + possibleSolutions.at(0).getCord.to_s)
-      return possibleSolutions.at(possibleSolutions.size)
+      rand = Random.rand(possibleSolutions.size)
+      p("going with a possibly dangerous spot, randomlyChosen:" + rand.to_s + ", spot: " + possibleSolutions.at(0).getCord.to_s)
+      return possibleSolutions.at(rand)
     end
   end
 
@@ -1481,7 +1482,7 @@ def supplyNearbyUnit(unit,supplyUnit)
   retreat(unit,getNeighboringSpaces(@field.getSpace(supplyUnit.getCord)))
   spaces = getNeighboringSpaces(@field.getSpace(unit.getCord))
   for space in spaces
-    if space.occoupiedWM == supplyUnit
+    if space != nil && space.occoupiedWM == supplyUnit
       unit.supplyUnit(supplyUnit)
       unitIsSupplied = true
     end
@@ -1489,12 +1490,14 @@ def supplyNearbyUnit(unit,supplyUnit)
   if(!unitIsSupplied)
     nextUnit = nil
     for space in spaces
-      if space.occoupiedWM != nil && nextUnit == nil
-        nextUnit = space.occoupiedWM
-
-      elsif space.occoupiedWM != nil && nextUnit != nil
-        if(space.occoupiedWM.fuel() *1.0/(space.occoupiedWM.maxFuel()*1.0)) > (nextUnit.fuel()*1.0/nextUnit.maxFuel()*1.0) || (space.occoupiedWM.ammo() *1.0 / (space.occoupiedWM.maxAmmo() *1.0)) > (nextUnit.ammo()*1.0 / nextUnit.maxAmmo()*1.0)
+      if space != nil
+        if space.occoupiedWM != nil && nextUnit == nil
           nextUnit = space.occoupiedWM
+
+        elsif space.occoupiedWM != nil && nextUnit != nil
+          if(space.occoupiedWM.fuel() *1.0/(space.occoupiedWM.maxFuel()*1.0)) > (nextUnit.fuel()*1.0/nextUnit.maxFuel()*1.0) || (space.occoupiedWM.ammo() *1.0 / (space.occoupiedWM.maxAmmo() *1.0)) > (nextUnit.ammo()*1.0 / nextUnit.maxAmmo()*1.0)
+            nextUnit = space.occoupiedWM
+          end
         end
       end
     end

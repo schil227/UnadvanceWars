@@ -23,7 +23,9 @@ class Submarine
     @timeSum = 0
     @stepBool = true
 
-    @health = 10
+    @health = 10 
+	 @healthImage = (Surface.load "data/blank.gif") 
+ 
     @power = 10*(@health * 0.1)
     @attackRange = [-1, 1]
     @movement = 5
@@ -143,12 +145,26 @@ class Submarine
   end
 
   def incHealth(num)
-    @health = @health+num
+    @health = @health+num 
+	 healthNum = @health.ceil 
+	 if(healthNum > 0 && healthNum < 10) 
+		 @healthImage = (Surface.load "data/" + healthNum.to_s + ".gif") 
+	 else 
+		 @healthImage = (Surface.load "data/blank.gif") 
+	 end 
+	
     @power = 10*(@health *0.1)
   end
 
   def decHealth(num)
-    @health = @health-num
+    @health = @health-num 
+	 healthNum = @health.ceil 
+	 if(healthNum > 0 && healthNum < 10) 
+		 @healthImage = (Surface.load "data/" + healthNum.to_s + ".gif") 
+	 else 
+		 @healthImage = (Surface.load "data/blank.gif") 
+	 end 
+	
     @power = 10*(@health *0.1)
   end
 
@@ -229,7 +245,10 @@ class Submarine
   end
 
   def draw  on_surface
-    @image.blit  on_surface, @rect
+    @image.blit  on_surface, @rect 
+	 @healthImage.blit  on_surface, @rect  
+	 @healthImage.blit  on_surface, @rect  
+	 @healthImage.blit  on_surface, @rect 
   end
 
 end
