@@ -1162,7 +1162,7 @@ def retreat(unit, citySpaces)
       print(space.class.to_s + ", ")
     end
 
-    unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
+    unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement, unit.fuel)
     p("unit path length:" + unitPath.size.to_s)
     if(unitPath.size > 0)
       targetSpace = refactorBestPath(unit,unitPath,1, [])
@@ -1423,7 +1423,7 @@ def deliverUnitToCity(unit,enemyCities)
   if(pathToCity.size > 0 && pathToCity.last != @field.getSpace(unit.getCord))
     targetCity = pathToCity.last
     pathToCity.shift
-    unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement)
+    unitPath = getAsFarAsPossible(unit,pathToCity,unit.movement, unit.fuel)
 
     if(genMoveRange(unit,(unit.movement + unit.convoyedUnit.movement),@field.getSpace(unit.getCord), unit.fuel).include?(targetCity))
       isClose = true
@@ -1458,7 +1458,7 @@ def deliverUnitToCity(unit,enemyCities)
   end
 end
 
-def getAsFarAsPossible(unit, pathToCity, movement)
+def getAsFarAsPossible(unit, pathToCity, movement, fuel)
   i = 0 #changed to one to ignore starting space
   unitPath = []
   mvmt = movement
@@ -1469,7 +1469,7 @@ def getAsFarAsPossible(unit, pathToCity, movement)
       mvmt = 0
     else
       citySpace = pathToCity.at(i)
-      if (citySpace.terrain.movement <= mvmt || (unit.isFlying && mvmt > 0))
+      if ((citySpace.terrain.movement <= mvmt || (unit.isFlying && mvmt > 0)) && fuel > 0)
         p("gonna add the space, mvmt:" + mvmt.to_s + ", spaceMvmt:" + citySpace.terrain.movement.to_s)
         unitPath << pathToCity.at(i)
         if(unit.isFlying)
@@ -1477,6 +1477,7 @@ def getAsFarAsPossible(unit, pathToCity, movement)
         else
           mvmt = mvmt - citySpace.terrain.movement
         end
+        fuel = fuel -1
         i = i + 1
       else
         p("not gonna add the space")
