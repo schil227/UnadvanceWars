@@ -565,7 +565,7 @@ def optimizeMovePathRecursion(currentNodes, allSpacesPassed, endSpaces, unit, ig
 
     for parentNode in currentNodes
       #      p("parentNode: " +nodeHistory(parentNode))
-      newPathNodes = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining, unit, ignoreEnemyUnits, parentNode.fuel) 
+      newPathNodes = getApplicableNeighboringSpaces(parentNode, parentNode.movementRemaining, unit, ignoreEnemyUnits, parentNode.fuel)
       #      p("found " + newPathNodes.size.to_s + " space(s)")
       #    p("processing applicable neighboring spaces for space: " + parentNode.currentNode.getCord.to_s + " mvmt:" + parentNode.movementRemaining.to_s)
 
@@ -1582,6 +1582,258 @@ def joinTransport(unit,transport)
   @field.removeWM(unit)
 end
 
+def sortNeededUnits(currentPlayer, listOfPlayers)
+  fundsPerTurn = currentPlayer.numOwnedCities *1000
+  playerUnits = currentPlayer.units
+  enemyUnits =[]
+  enemyPlayers = listOfPlayers.dup
+  enemyPlayers.delete_if{|player| player == currentPlayer}
+  for player in enemyPlayers
+    enemyUnits.concat(player.units)
+  end
+  sortedP = [airPresence(enemyUnits, playerUnits),seaPresence(enemyUnits, playerUnits),groundPresence(enemyUnits, playerUnits)].sort{|a,b| a.at(0) <=> b.at(0) }
+  n1 = sortedP.at(2).at(0) - sortedP.at(1).at(0)
+  n2 = (sortedP.at(1).at(0) - sortedP.at(0).at(0)) + n1
+  selectionArr = [sortedP.last.at(1)]
+  n1.times {selectionArr << sortedP.at(1).at(1)}
+  n2.times {selectionArr << sortedP.at(0).at(1)}
+  type = selectionArr.at(Random.rand(selectionArr.length))
+  selectionArr.delete_if{|x| x == type}
+  type2 = selectionArr.at(Random.rand(selectionArr.length))
+  selectionArr.delete_if{|x| x == type2}
+  type3 = selectionArr.at(0)
+  offDef = ""
+  chosenArr = [type,type2,type3]
+  returnArr = []
+  for type in chosenArr
+    for p in sortedP
+      if p.at(1) == type
+        if p.at(0) > 0
+          returnArr << [type,"offensive"]
+        else
+          returnArr << [type,"defensive"]
+        end
+      end
+    end
+  end
+  return returnArr
+  p("return arr:"+ returnArr.to_s)
+end
+
+def mandateUnits(currentPlayer, listOfPlayers)
+  priorityMandate =[]
+  mandate = []
+  playerUnits = Hash.new(0)
+  currentPlayer.units.each do |unit|
+    playerUnits[unit.class.to_s] +=1
+  end
+  if(playerUnits["Infantry"] + playerUnits["Mech"] < 3)
+    (3 - (playerUnits["Infantry"] + playerUnits["Mech"])).times {
+      num = Random.rand(3)
+      if(num < 2)
+        priorityMandate << Infantry
+      else
+        priorityMandate << Mech
+      end
+    }
+  end
+
+  if(playerUnits["Infantry"] + playerUnits["Mech"] - playerUnits["APC"] + playerUnits["TChopper"])
+    if(hasBase(currentPlayer, "a"))
+      num = Random.rand(2)
+      if(num < 1)
+        mandate << APC
+      else
+        mandate << TChopper
+      end
+    else
+      mandate << APC
+    end
+  end
+  normalUnit = choseUnitToMandate(currentPlayer, listOfPlayers)
+  p("the normalUnit is " + normalUnit.to_s)
+  mandate << normalUnit
+  return priorityMandate.concat(mandate)
+end
+
+def choseUnitToMandate(currentPlayer, listOfPlayers)
+  normalUnit = nil
+  normalUnitMandate = sortNeededUnits(currentPlayer, listOfPlayers)
+  for requestedType in normalUnitMandate
+    if normalUnit!=nil
+      if(requestedType.at(1) == "offensive")
+
+        if(requestedType.at(0) == "a")
+          if(hasBase(currentPlayer, "a"))
+            normalUnit = [BChopper, Fighter, Bomber].at(Random.rand(3))
+          end
+        elsif(requestedType.at(0) == "s")
+          if(hasBase(currentPlayer, "s"))
+            normalUnit = [Cruiser, Battleship, Submarine].at(Random.rand(3))
+          end
+        elsif(requestedType.at(0) == "g")
+          if(hasBase(currentPlayer, "g"))
+            normalUnit = [Mech, Recon, Tank, Artillery, AntiAir, Rockets, MedTank, MedTank].at(Random.rand(7))
+          end
+        end
+
+      else #build defensive units
+        possibleUnits = []
+        if(requestedType.at(0) == "a")
+
+          if(hasBase(currentPlayer, "a") && Random.rand(5) > 2)
+            possibleUnits << [Fighter]
+          end
+          if(hasBase(currentPlayer, "g"))
+            possibleUnits << [AntiAir, Missile]
+          end
+          normalUnit = possibleUnits.at(possibleUnits.length)
+        elsif(requestedType.at(0) == "s")
+          if(hasBase(currentPlayer, "s"))
+            possibleUnits << [Cruiser, Submarine]
+          end
+          if(hasBase(currentPlayer, "g") && Random.rand(5) > 2)
+            possibleUnits << [Rocket]
+          end
+          normalUnit = possibleUnits.at(possibleUnits.length)
+        elsif(requestedType.at(0) == "g")
+          if(hasBase(currentPlayer, "g"))
+            possibleUnits << [Mech, Tank, Artillery, MediumTank]
+          end
+          if(hasBase(currentPlayer, "a"))
+            possibleUnits << [Bomber, BChopper]
+          end
+          #          if(hasBase(currentPlayer, "s"))
+          #            possibleUnits << [Battleship]
+          #          end
+          normalUnit = possibleUnits.at(possibleUnits.length)
+        end
+
+      end
+    end
+  end
+  return normalUnit
+end
+
+def hasBase(currentPlayer, type)
+  typeNumber = 0
+  if(type == "a")
+    typeNumber = 4
+  elsif(type == "p")
+    typeNumber = 3
+  elsif(type == "b")
+    typeNumber = 2
+  end
+
+  if(typeNumber == 0)
+    return false
+  else
+    for citySpace in currentPlayer.citySpaces
+      if(citySpace.terrain.typeNumber == typeNumber)
+        return true
+      end
+    end
+    return false
+  end
+end
+
+def getUnitCost(unit)
+  tmpCity = City.new(nil,nil,nil)
+  allUnitsAndCosts = tmpCity.landUnits.concat(tmpCity.airUnits.concat(tmpCity.concat(seaUnits)))
+  for unitAndCost in allUnitsAndCosts
+    if(unit.class.to_s == unitAndCost.at(0))
+      return unitAndCost.at(1)
+    end
+  end
+  p("UNIT NOT FOUND")
+  return nil
+end
+
+def airPresence(enemyUnits, playerUnits, numEnemies)
+  enemyAirUnits = enemyUnits.dup
+  enemyAirUnits.delete_if{|x| !x.isFlying}
+  enemyScore = 0
+  playerScore = 0
+  for unit in enemyAirUnits
+    if(unit.class == TChopper)
+      enemyScore = enemyScore + 1
+    elsif(unit.class == BChopper)
+      enemyScore = enemyScore + 3
+    elsif(unit.class == Bomber || unit.class == Fighter)
+      enemyScore = enemyScore + 5
+    end
+  end
+
+  for unit in availableUnits
+    if(unit.class == TChopper)
+      playerScore = enemyScore + 1
+    elsif(unit.class == BChopper || unit.class == Cruiser)
+      playerScore = enemyScore + 3
+    elsif(unit.class == AntiAir || unit.class == Fighter || unit.class == Missile)
+      playerScore = enemyScore + 5
+    end
+  end
+  return [playerScore - (enemyScore*1.0 / numEnemies), "a"]
+end
+
+def seaPresence(enemyUnits, playerUnits, numEnemies)
+  enemyAirUnits = enemyUnits.dup
+  enemyAirUnits.delete_if{|x| !x.isSailing}
+  enemyScore = 0
+  playerScore = 0
+  for unit in enemyAirUnits
+    if(unit.class == Lander)
+      enemyScore = enemyScore + 2
+    elsif(unit.class == Cruiser)
+      enemyScore = enemyScore + 3
+    elsif(unit.class == Sub || unit.class == Battleship)
+      enemyScore = enemyScore + 5
+    end
+  end
+
+  for unit in availableUnits
+    if(unit.class == Artillery)
+      playerScore = enemyScore + 1
+    elsif(unit.class == Rocket || unit.class == Cruiser)
+      playerScore = enemyScore + 3
+    elsif(unit.class == Bomber || unit.class == Sub || unit.class == Battleship)
+      playerScore = enemyScore + 5
+    end
+  end
+  return [playerScore - (enemyScore*1.0 / numEnemies), "s"]
+end
+
+def groundPresence(enemyUnits, playerUnits, numEnemies)
+  enemyAirUnits = enemyUnits.dup
+  enemyAirUnits.delete_if{|x| !x.isSailing}
+  enemyScore = 0
+  playerScore = 0
+  for unit in enemyAirUnits
+    if(unit.class == Recon)
+      enemyScore = enemyScore + 2
+    elsif(unit.class == AntiAir || unit.class == Mech)
+      enemyScore = enemyScore + 2
+    elsif(unit.class == Artillery || unit.class == Tank)
+      enemyScore = enemyScore + 3
+    elsif(unit.class == Rocket || unit.class == MedTank)
+      enemyScore = enemyScore + 5
+    end
+  end
+
+  for unit in availableUnits
+    if(unit.class == Recon)
+      playerScore = enemyScore + 2
+    elsif(unit.class == AntiAir || unit.class == Mech)
+      playerScore = enemyScore + 2
+    elsif(unit.class == Artillery || unit.class == Tank || unit.class == BChopper)
+      playerScore = enemyScore + 3
+    elsif(unit.class == Rocket || unit.class == MedTank || unit.class == Bomber || unit.class == Battleship)
+      playerScore = enemyScore + 5
+    end
+  end
+  return [playerScore - (enemyScore*1.0 / numEnemies), "g"]
+end
+
 #################Mechanics###########################################
 
 def tmpField(cords)
@@ -2285,6 +2537,9 @@ def main()
       usuableUnits = infUnits + usuableUnits
 
       for unit in usuableUnits
+        if(@listOfP.length() == 1)
+          break
+        end
         debug = true
         crtlLoopTime = 0.7
         sumTime =  @clock.tick().seconds
