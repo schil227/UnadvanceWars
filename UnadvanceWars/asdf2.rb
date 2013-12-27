@@ -82,3 +82,15 @@ n = arr.each{|x|  if x.at(1) == "a"
   true
 end}
 p("n:" + n.to_s)
+
+n1=0
+n2=0
+
+if(n1 == 0)
+  n1=1
+elsif(n2==0)
+  n2=1
+end
+
+
+p("n1:" + n1.to_s + ", n2:" + n2.to_s)

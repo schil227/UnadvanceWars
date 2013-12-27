@@ -10,6 +10,13 @@ class AI
     @numOwnedCities = 0
     @difficulty = difficulty
     @citySpaces =[]
+    @mandatedUnits = []
+
+      
+    def self.mandatedUnits
+      @mandatedUnits
+    end
+    
     def self.citySpaces
       @citySpaces
     end
@@ -40,6 +47,14 @@ class AI
 
   end
 
+  def appendmandatedUnits(newMandatedUnits)
+    @mandatedUnits.concat(newMandatedUnits)
+  end
+  
+  def removeMandatedUnit(units)
+    @mandatedUnits.delete(units)
+  end
+  
   def addCitySpace(space)
     @citySpaces << space
   end

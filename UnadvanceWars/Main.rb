@@ -17,6 +17,9 @@ def setup(useUnits)
   @mapy = file.readline().size - 1
   @field = Field.new(@mapx, @mapy) #x & y are flipped D:
   @cityArr = @field.setupField(map)
+  @UnitCosts = [["Infantry", 1000], ["Mech", 3000], ["Recon", 4000], ["APC", 5000], ["Tank", 6000], ["Artillery", 7000], ["AntiAir", 8000], ["Missile", 14000], ["Rocket", 15000], ["MedTank", 16000], \
+    ["Lander",12000],["Cruiser", 18000],["Submarine",20000],["Battleship", 28000],["TChopper",7000],\
+    ["BChopper",9000],["Fighter", 20000],["Bomber", 22000]]
 
   @consoleXCord = @mapx * 50 + 5
   @screen = Screen.open [@mapx * 50 + 175, @mapy *50 + 25]
@@ -1583,7 +1586,6 @@ def joinTransport(unit,transport)
 end
 
 def sortNeededUnits(currentPlayer, listOfPlayers)
-  fundsPerTurn = currentPlayer.numOwnedCities *1000
   playerUnits = currentPlayer.units
   enemyUnits =[]
   enemyPlayers = listOfPlayers.dup
@@ -1591,12 +1593,18 @@ def sortNeededUnits(currentPlayer, listOfPlayers)
   for player in enemyPlayers
     enemyUnits.concat(player.units)
   end
-  sortedP = [airPresence(enemyUnits, playerUnits),seaPresence(enemyUnits, playerUnits),groundPresence(enemyUnits, playerUnits)].sort{|a,b| a.at(0) <=> b.at(0) }
+  sortedP = [airPresence(enemyUnits, playerUnits, listOfPlayers.length),seaPresence(enemyUnits, playerUnits, listOfPlayers.length),groundPresence(enemyUnits, playerUnits, listOfPlayers.length)].sort{|a,b| a.at(0) <=> b.at(0) }
   n1 = sortedP.at(2).at(0) - sortedP.at(1).at(0)
   n2 = (sortedP.at(1).at(0) - sortedP.at(0).at(0)) + n1
+  if(n1 == 0)
+    n1=1
+  end
+  if(n2 == 0)
+    n2=1
+  end
   selectionArr = [sortedP.last.at(1)]
-  n1.times {selectionArr << sortedP.at(1).at(1)}
-  n2.times {selectionArr << sortedP.at(0).at(1)}
+  (n1.round).times {selectionArr << sortedP.at(1).at(1)}
+  (n2.round).times {selectionArr << sortedP.at(0).at(1)}
   type = selectionArr.at(Random.rand(selectionArr.length))
   selectionArr.delete_if{|x| x == type}
   type2 = selectionArr.at(Random.rand(selectionArr.length))
@@ -1616,8 +1624,8 @@ def sortNeededUnits(currentPlayer, listOfPlayers)
       end
     end
   end
-  return returnArr
   p("return arr:"+ returnArr.to_s)
+  return returnArr
 end
 
 def mandateUnits(currentPlayer, listOfPlayers)
@@ -1631,23 +1639,25 @@ def mandateUnits(currentPlayer, listOfPlayers)
     (3 - (playerUnits["Infantry"] + playerUnits["Mech"])).times {
       num = Random.rand(3)
       if(num < 2)
-        priorityMandate << Infantry
+        priorityMandate << [Infantry, 2]
       else
-        priorityMandate << Mech
+        priorityMandate << [Mech,2]
       end
     }
   end
 
   if(playerUnits["Infantry"] + playerUnits["Mech"] - playerUnits["APC"] + playerUnits["TChopper"])
-    if(hasBase(currentPlayer, "a"))
+    if(hasBase(currentPlayer, "a") && hasBase(currentPlayer, "g"))
       num = Random.rand(2)
       if(num < 1)
-        mandate << APC
+        mandate << [APC,2]
       else
-        mandate << TChopper
+        mandate << [TChopper,4]
       end
-    else
+    elsif(hasBase(currentPlayer, "g"))
       mandate << APC
+    elsif(hasBase(currentPlayer, "a") )
+      mandate << [TChopper,4]
     end
   end
   normalUnit = choseUnitToMandate(currentPlayer, listOfPlayers)
@@ -1660,20 +1670,20 @@ def choseUnitToMandate(currentPlayer, listOfPlayers)
   normalUnit = nil
   normalUnitMandate = sortNeededUnits(currentPlayer, listOfPlayers)
   for requestedType in normalUnitMandate
-    if normalUnit!=nil
+    if normalUnit==nil
       if(requestedType.at(1) == "offensive")
 
         if(requestedType.at(0) == "a")
           if(hasBase(currentPlayer, "a"))
-            normalUnit = [BChopper, Fighter, Bomber].at(Random.rand(3))
+            normalUnit = [[BChopper,4], [Fighter,4], [Bomber,4]].at(Random.rand(3))
           end
         elsif(requestedType.at(0) == "s")
           if(hasBase(currentPlayer, "s"))
-            normalUnit = [Cruiser, Battleship, Submarine].at(Random.rand(3))
+            normalUnit = [[Cruiser,3], [Battleship,3], [Submarine,3]].at(Random.rand(3))
           end
         elsif(requestedType.at(0) == "g")
           if(hasBase(currentPlayer, "g"))
-            normalUnit = [Mech, Recon, Tank, Artillery, AntiAir, Rockets, MedTank, MedTank].at(Random.rand(7))
+            normalUnit = [[Mech,2], [Recon,2], [Tank,2], [Artillery,2], [AntiAir,2], [Rockets,2], [MedTank,2], [MedTank,2]].at(Random.rand(7))
           end
         end
 
@@ -1682,26 +1692,26 @@ def choseUnitToMandate(currentPlayer, listOfPlayers)
         if(requestedType.at(0) == "a")
 
           if(hasBase(currentPlayer, "a") && Random.rand(5) > 2)
-            possibleUnits << [Fighter]
+            possibleUnits.concat([[Fighter,4]])
           end
           if(hasBase(currentPlayer, "g"))
-            possibleUnits << [AntiAir, Missile]
+            possibleUnits.concat([[AntiAir,2], [Missile,2]])
           end
           normalUnit = possibleUnits.at(possibleUnits.length)
         elsif(requestedType.at(0) == "s")
           if(hasBase(currentPlayer, "s"))
-            possibleUnits << [Cruiser, Submarine]
+            possibleUnits.concat([[Cruiser,3], [Submarine,3]])
           end
           if(hasBase(currentPlayer, "g") && Random.rand(5) > 2)
-            possibleUnits << [Rocket]
+            possibleUnits.concat([[Rocket,2]])
           end
           normalUnit = possibleUnits.at(possibleUnits.length)
         elsif(requestedType.at(0) == "g")
           if(hasBase(currentPlayer, "g"))
-            possibleUnits << [Mech, Tank, Artillery, MediumTank]
+            possibleUnits.concat([[Mech,2], [Tank,2], [Artillery,2], [MediumTank,2]])
           end
           if(hasBase(currentPlayer, "a"))
-            possibleUnits << [Bomber, BChopper]
+            possibleUnits.concat([[Bomber,4], [BChopper,4]])
           end
           #          if(hasBase(currentPlayer, "s"))
           #            possibleUnits << [Battleship]
@@ -1738,10 +1748,10 @@ def hasBase(currentPlayer, type)
 end
 
 def getUnitCost(unit)
-  tmpCity = City.new(nil,nil,nil)
-  allUnitsAndCosts = tmpCity.landUnits.concat(tmpCity.airUnits.concat(tmpCity.concat(seaUnits)))
-  for unitAndCost in allUnitsAndCosts
-    if(unit.class.to_s == unitAndCost.at(0))
+  p("cost looking for unit:" + unit.to_s)
+  for unitAndCost in @UnitCosts
+    if(unit.to_s == unitAndCost.at(0))
+
       return unitAndCost.at(1)
     end
   end
@@ -1764,7 +1774,7 @@ def airPresence(enemyUnits, playerUnits, numEnemies)
     end
   end
 
-  for unit in availableUnits
+  for unit in playerUnits
     if(unit.class == TChopper)
       playerScore = enemyScore + 1
     elsif(unit.class == BChopper || unit.class == Cruiser)
@@ -1772,6 +1782,10 @@ def airPresence(enemyUnits, playerUnits, numEnemies)
     elsif(unit.class == AntiAir || unit.class == Fighter || unit.class == Missile)
       playerScore = enemyScore + 5
     end
+  end
+
+  if(enemyScore == 0)
+    return [30, "a"]
   end
   return [playerScore - (enemyScore*1.0 / numEnemies), "a"]
 end
@@ -1791,14 +1805,17 @@ def seaPresence(enemyUnits, playerUnits, numEnemies)
     end
   end
 
-  for unit in availableUnits
+  for unit in playerUnits
     if(unit.class == Artillery)
       playerScore = enemyScore + 1
     elsif(unit.class == Rocket || unit.class == Cruiser)
       playerScore = enemyScore + 3
-    elsif(unit.class == Bomber || unit.class == Sub || unit.class == Battleship)
+    elsif(unit.class == Bomber || unit.class == Submarine || unit.class == Battleship)
       playerScore = enemyScore + 5
     end
+  end
+  if(enemyScore == 0)
+    return [30, "s"]
   end
   return [playerScore - (enemyScore*1.0 / numEnemies), "s"]
 end
@@ -1820,7 +1837,7 @@ def groundPresence(enemyUnits, playerUnits, numEnemies)
     end
   end
 
-  for unit in availableUnits
+  for unit in playerUnits
     if(unit.class == Recon)
       playerScore = enemyScore + 2
     elsif(unit.class == AntiAir || unit.class == Mech)
@@ -1830,6 +1847,9 @@ def groundPresence(enemyUnits, playerUnits, numEnemies)
     elsif(unit.class == Rocket || unit.class == MedTank || unit.class == Bomber || unit.class == Battleship)
       playerScore = enemyScore + 5
     end
+  end
+  if(enemyScore == 0)
+    return [30, "g"]
   end
   return [playerScore - (enemyScore*1.0 / numEnemies), "g"]
 end
@@ -2623,7 +2643,75 @@ def main()
       end
       p("number of remaning units:" + currentPlayer.units.size.to_s)
 
+      openGroundFactories = []
+      openSeaFactories = []
+      openAirFactories = []
+
+      for space in currentPlayer.citySpaces
+        if isOpenFactory(space,currentPlayer)
+          case space.terrain.typeNumber
+          when 2
+            openGroundFactories << space
+          when 3
+            openSeaFactories << space
+          when 4
+            openAirFactories << space
+          end
+        end
+      end
+      p("found open factories. ground:" + openGroundFactories.length.to_s + ", sea:" + openSeaFactories.length.to_s + ", air:" + openAirFactories.length.to_s)
+      if(!openGroundFactories.empty? || !openSeaFactories.empty? || !openAirFactories.empty? && currentPlayer.mandatedUnits.length < 3)
+        currentPlayer.appendmandatedUnits(mandateUnits(currentPlayer, @listOfP.dup))
+      end
+
+      building = true
+      for units in currentPlayer.mandatedUnits
+        if(building)
+          if(getUnitCost(units.at(0)) <= currentPlayer.funds)
+            p("the mandated unit is "+ units.at(1).to_s)
+            case (units.at(1))
+            when 2
+              if(!openGroundFactories.empty?)
+                currentPlayer.decreaseFunds(getUnitCost(units.at(0)))
+                factory = openGroundFactories.shift
+                newUnit = units.at(0).new(factory.x,factory.y,currentPlayer.playerNum)
+                currentPlayer.addUnits([newUnit])
+                @sprites << newUnit
+                @field.addWM(newUnit)
+                newUnit.setHasMoved()
+                currentPlayer.removeMandatedUnit(units)
+              end
+            when 3
+              if(!openSeaFactories.empty?)
+                currentPlayer.decreaseFunds(getUnitCost(units.at(0)))
+                factory = openSeaFactories.shift
+                newUnit = units.at(0).new(factory.x,factory.y,currentPlayer.playerNum)
+                currentPlayer.addUnits([newUnit])
+                @sprites << newUnit
+                @field.addWM(newUnit)
+                newUnit.setHasMoved()
+                currentPlayer.removeMandatedUnit(units)
+              end
+            when 4
+              if(!openAirFactories.empty?)
+                currentPlayer.decreaseFunds(getUnitCost(units.at(0)))
+                factory = openAirFactories.shift
+                newUnit = units.at(0).new(factory.x,factory.y,currentPlayer.playerNum)
+                currentPlayer.addUnits([newUnit])
+                @sprites << newUnit
+                @field.addWM(newUnit)
+                newUnit.setHasMoved()
+                currentPlayer.removeMandatedUnit(units)
+              end
+            end
+          else #not enough funds, wait till next turn
+            p("not enough funds, wait till next turn")
+            building = false
+          end
+        end
+      end
     end
+
     if(@listOfP.length() > 1)
       @infoBar.modifyText(currentPlayer.name + " eneded their turn")
       setUnitsUnmoved(currentPlayer)
