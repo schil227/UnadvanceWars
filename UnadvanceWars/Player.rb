@@ -6,7 +6,8 @@ class Player
     @isTurn = false
     @funds = 20000
     @numOwnedCities = 0
-    @citySpaces =[]
+    @citySpaces = []
+    @armyIsSetUp = false
     def self.citySpaces
       @citySpaces
     end
@@ -31,6 +32,10 @@ class Player
       @numOwnedCities
     end
 
+    def self.armyIsSetUp
+      @armyIsSetUp
+    end
+
   end
 
   def incNumOwnedCities
@@ -42,7 +47,7 @@ class Player
   end
 
   def acquireFunds()
-    @funds += (100 * @numOwnedCities)
+    @funds += (1000 * @numOwnedCities)
   end
 
   def decreaseFunds(expense)
@@ -53,11 +58,17 @@ class Player
     return (@units.include?(unit))
   end
 
-  def addUnits(unitArray) ###CHANGE TO THIS INSTANCE INSTED OF PASSING PLAYER
-    @units.concat(unitArray)
+  def addUnits(unitArray)
+    if !unitArray.empty?
 
-    for unit in unitArray
-      unit.setCommander(self)
+      @units.concat(unitArray)
+
+      for unit in unitArray
+        unit.setCommander(self)
+      end
+      if(@armyIsSetUp == false)
+        @armyIsSetUp = true
+      end
     end
   end
 
@@ -76,7 +87,7 @@ class Player
   def addCitySpace(space)
     @citySpaces << space
   end
-  
+
   def removeCitySpace(space)
     @citySpaces.delete(space)
   end

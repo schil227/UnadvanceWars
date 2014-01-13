@@ -11,12 +11,11 @@ class AI
     @difficulty = difficulty
     @citySpaces =[]
     @mandatedUnits = []
-
-      
+    @armyIsSetUp = false
     def self.mandatedUnits
       @mandatedUnits
     end
-    
+
     def self.citySpaces
       @citySpaces
     end
@@ -45,16 +44,19 @@ class AI
       @difficulty
     end
 
+    def self.armyIsSetUp
+      @armyIsSetUp
+    end
   end
 
   def appendmandatedUnits(newMandatedUnits)
     @mandatedUnits.concat(newMandatedUnits)
   end
-  
+
   def removeMandatedUnit(units)
     @mandatedUnits.delete(units)
   end
-  
+
   def addCitySpace(space)
     @citySpaces << space
   end
@@ -72,7 +74,7 @@ class AI
   end
 
   def acquireFunds()
-    @funds += (100 * @numOwnedCities)
+    @funds += (1000 * @numOwnedCities)
   end
 
   def decreaseFunds(expense)
@@ -84,10 +86,16 @@ class AI
   end
 
   def addUnits(unitArray)
-    @units.concat(unitArray)
+    if !unitArray.empty?
 
-    for unit in unitArray
-      unit.setCommander(self)
+      @units.concat(unitArray)
+
+      for unit in unitArray
+        unit.setCommander(self)
+      end
+      if(@armyIsSetUp == false)
+        @armyIsSetUp = true
+      end
     end
   end
 

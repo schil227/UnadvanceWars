@@ -72,34 +72,34 @@ def setup(useUnits)
 
   if(useUnits)
     p1Units = [
-      mTank = MedTank.new(7,8,1),
-      #      art = Artillery.new(2,3,1),
-      tank2 = Tank.new(0,4,1),
-      inf = Infantry.new(6,7,1),
-      #       chop = BChopper.new(8,15,1),
-      #      bat = Battleship.new(3,11,1),
-      #      bomb = Bomber.new(4,5,1),
-      #       crsr = Cruiser.new(3,10,1),
-      recon1 = Recon.new(2,8,1),
-      mech1 = Mech.new(2,9,1),
-      apc = APC.new(4,11,1),
-      #      lan = Lander.new(6,11,1),
+#      mTank = MedTank.new(7,8,1),
+#      #      art = Artillery.new(2,3,1),
+#      tank2 = Tank.new(0,4,1),
+#      inf = Infantry.new(6,7,1),
+#      #       chop = BChopper.new(8,15,1),
+#      #      bat = Battleship.new(3,11,1),
+#      #      bomb = Bomber.new(4,5,1),
+#      #       crsr = Cruiser.new(3,10,1),
+#      recon1 = Recon.new(2,8,1),
+#      mech1 = Mech.new(2,9,1),
+#      apc = APC.new(4,11,1),
+#      #      lan = Lander.new(6,11,1),
     ]
 
     p2Units = [
-      mTank2 = MedTank.new(6,18,2),
-      #            tank = Tank.new(1,18,2),
-      art2 = Artillery.new(1,17,2),
-      #            art3 = Artillery.new(1,1,2),
-      rocket = Rocket.new(3,14,2),
-      aa = AntiAir.new(1,15,2),
-      #      fgtr = Fighter.new(2,14,2),
-      #            sub = Submarine.new(2,11,2),
-      #            recon = Recon.new(3,9,2),
-      #            mech = Mech.new(1,9,2),
-      #      bomb2 = Bomber.new(8,16,2),
-      mech2 = Mech.new(8,18,2),
-      apc = APC.new(8,17,2),
+#      mTank2 = MedTank.new(6,18,2),
+#      #            tank = Tank.new(1,18,2),
+#      art2 = Artillery.new(1,17,2),
+#      #            art3 = Artillery.new(1,1,2),
+#      rocket = Rocket.new(3,14,2),
+#      aa = AntiAir.new(1,15,2),
+#      #      fgtr = Fighter.new(2,14,2),
+#      #            sub = Submarine.new(2,11,2),
+#      #            recon = Recon.new(3,9,2),
+#      #            mech = Mech.new(1,9,2),
+#      #      bomb2 = Bomber.new(8,16,2),
+#      mech2 = Mech.new(8,18,2),
+#      apc = APC.new(8,17,2),
     ]
     player1.addUnits(p1Units)
     player2.addUnits(p2Units)
@@ -2158,7 +2158,7 @@ def getCommand(currentPlayer)
 
     seconds_passed = @clock.tick().seconds
     for player in @listOfP
-      if player.units.empty?
+      if player.units.empty? && player.armyIsSetUp
         @listOfP.delete(player)
       end
     end
@@ -2522,10 +2522,6 @@ def main()
   currentPlayer = @listOfP.at(x)
 
   preTurnActions(currentPlayer)
-  #  theRocket = Rocket.new(0,2,2) For testing how well the path finder is
-  #  @sprites << theRocket
-  #  @listOfP.at(1).addUnits([theRocket])
-  #  move(theRocket, genPathFromNodes(optimizeMovePath(@field.getSpace(theRocket.getCord),99,@field.getSpace([1,18]),theRocket),[]))
 
   while (@listOfP.length() != 1)
 
@@ -2724,7 +2720,8 @@ def main()
       #      ("time2:" + t2.to_s)
       p("the next player is " + currentPlayer.name)
       for player in @listOfP
-        if player.units.empty?
+        if player.units.empty? && player.armyIsSetUp
+          p("deleting player: " + player.name)
           @listOfP.delete(player)
         end
       end
