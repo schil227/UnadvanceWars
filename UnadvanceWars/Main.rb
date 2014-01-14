@@ -65,41 +65,41 @@ def setup(useUnits)
   @event_queue = EventQueue.new
   @event_queue.enable_new_style_events
 
-  player1 = Player.new("RED",1)
+  player1 = AI.new("RED",1,1)
   player2 = AI.new("BLUE",2, 1)
 
   @listOfP = [player1,player2]
 
   if(useUnits)
     p1Units = [
-#      mTank = MedTank.new(7,8,1),
-#      #      art = Artillery.new(2,3,1),
-#      tank2 = Tank.new(0,4,1),
-#      inf = Infantry.new(6,7,1),
-#      #       chop = BChopper.new(8,15,1),
-#      #      bat = Battleship.new(3,11,1),
-#      #      bomb = Bomber.new(4,5,1),
-#      #       crsr = Cruiser.new(3,10,1),
-#      recon1 = Recon.new(2,8,1),
-#      mech1 = Mech.new(2,9,1),
-#      apc = APC.new(4,11,1),
-#      #      lan = Lander.new(6,11,1),
+    #      mTank = MedTank.new(7,8,1),
+    #      #      art = Artillery.new(2,3,1),
+    #      tank2 = Tank.new(0,4,1),
+    #      inf = Infantry.new(6,7,1),
+    #      #       chop = BChopper.new(8,15,1),
+    #      #      bat = Battleship.new(3,11,1),
+    #      #      bomb = Bomber.new(4,5,1),
+    #      #       crsr = Cruiser.new(3,10,1),
+    #      recon1 = Recon.new(2,8,1),
+    #      mech1 = Mech.new(2,9,1),
+    #      apc = APC.new(4,11,1),
+    #      #      lan = Lander.new(6,11,1),
     ]
 
     p2Units = [
-#      mTank2 = MedTank.new(6,18,2),
-#      #            tank = Tank.new(1,18,2),
-#      art2 = Artillery.new(1,17,2),
-#      #            art3 = Artillery.new(1,1,2),
-#      rocket = Rocket.new(3,14,2),
-#      aa = AntiAir.new(1,15,2),
-#      #      fgtr = Fighter.new(2,14,2),
-#      #            sub = Submarine.new(2,11,2),
-#      #            recon = Recon.new(3,9,2),
-#      #            mech = Mech.new(1,9,2),
-#      #      bomb2 = Bomber.new(8,16,2),
-#      mech2 = Mech.new(8,18,2),
-#      apc = APC.new(8,17,2),
+    #      mTank2 = MedTank.new(6,18,2),
+    #      #            tank = Tank.new(1,18,2),
+    #      art2 = Artillery.new(1,17,2),
+    #      #            art3 = Artillery.new(1,1,2),
+    #      rocket = Rocket.new(3,14,2),
+    #      aa = AntiAir.new(1,15,2),
+    #      #      fgtr = Fighter.new(2,14,2),
+    #      #            sub = Submarine.new(2,11,2),
+    #      #            recon = Recon.new(3,9,2),
+    #      #            mech = Mech.new(1,9,2),
+    #      #      bomb2 = Bomber.new(8,16,2),
+    #      mech2 = Mech.new(8,18,2),
+    #      apc = APC.new(8,17,2),
     ]
     player1.addUnits(p1Units)
     player2.addUnits(p2Units)
@@ -1232,7 +1232,7 @@ end
 
 def refactorBestPath(unit, unitPath, requiredOpenness, blackSpaces) #returns an optimal space to go to from a path
   t1 = Time.new()
-  p("time1:" + t1.to_s + " unit:" + unit.class.to_s)
+  p("time1:" + t1.to_s + " unit:" + unit.class.to_s + " at " + unit.getCord.to_s)
   p("the unit path size:" + unitPath.size.to_s)
   currentSpace = unitPath.last
   size = unitPath.size
@@ -1303,6 +1303,11 @@ def refactorBestPath(unit, unitPath, requiredOpenness, blackSpaces) #returns an 
 
   t2 = Time.new()
   p("time2:" + t2.to_s)
+  if(goodSpace != nil)
+    p("goodSpace: " + goodSpace.getCord.to_s + " possibleSolutions Size:" + possibleSolutions.length.to_s)
+  else
+    p("no goodSpace, possibleSolutions Size:" + possibleSolutions.length.to_s)
+  end
   if(goodSpace != nil )
     if(possibleSolutions.empty?)
       p("returning the good space")
@@ -1311,7 +1316,8 @@ def refactorBestPath(unit, unitPath, requiredOpenness, blackSpaces) #returns an 
       p("returning the good space")
       return goodSpace
     end
-  elsif(!possibleSolutions.empty?)
+  end
+  if(!possibleSolutions.empty?)
     p("returning the ok space")
     return possibleSolutions.at(Random.rand(possibleSolutions.size) % possibleSolutions.size)
   end
@@ -1526,9 +1532,9 @@ def findInf(unit, currentPlayer)
   units = currentPlayer.units.dup
   p("num units total:" + currentPlayer.units.size.to_s)
   infSpaces = []
-  for unit in units
-    if(unit.class == Infantry || unit.class == Mech)
-      space = @field.getSpace(unit.getCord)
+  for aUnit in units
+    if(aUnit.class == Infantry || aUnit.class == Mech)
+      space = @field.getSpace(aUnit.getCord)
       infSpaces << space
       infSpaces.concat(getNeighboringSpaces(space))
       infSpaces.delete_if{|x| x== nil || x.occoupiedWM != nil}
@@ -1540,6 +1546,7 @@ def findInf(unit, currentPlayer)
   for space in infSpaces
     p(space.getCord.to_s)
   end
+  p("retreating unit " + unit.class.to_s + " at " + unit.getCord.to_s)
   retreat(unit,infSpaces)
 end
 
@@ -1675,7 +1682,7 @@ def choseUnitToMandate(currentPlayer, listOfPlayers)
 
         if(requestedType.at(0) == "a")
           if(hasBase(currentPlayer, "a"))
-            normalUnit = [[BChopper,4], [Fighter,4], [Bomber,4]].at(Random.rand(3))
+            normalUnit = [[BChopper,4], [Bomber,4]].at(Random.rand(2)) #[Fighter,4]
           end
         elsif(requestedType.at(0) == "s")
           if(hasBase(currentPlayer, "s"))
@@ -2576,7 +2583,7 @@ def main()
           end
         end
 
-        p("The current unit:" + unit.class.to_s)
+        p("The current unit:" + unit.class.to_s + " at " + unit.getCord.to_s)
         didAction = false
         #If already capturing, keep capturing
         if(!didAction && (unit.class == Mech || unit.class == Infantry) && @field.getSpace(unit.getCord).terrain.class == City && @field.getSpace(unit.getCord).terrain.occoupiedPlayer != unit.commander && @field.getSpace(unit.getCord).terrain.cityLevel < 20 )
@@ -2662,7 +2669,7 @@ def main()
 
       building = true
       for units in currentPlayer.mandatedUnits
-        if(building)
+        if(building && units != nil)
           if(getUnitCost(units.at(0)) <= currentPlayer.funds)
             p("the mandated unit is "+ units.at(1).to_s)
             case (units.at(1))
