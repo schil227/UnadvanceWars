@@ -65,8 +65,8 @@ def setup(useUnits)
   @event_queue = EventQueue.new
   @event_queue.enable_new_style_events
 
-  player1 = AI.new("RED",1,1)
-  player2 = AI.new("BLUE",2, 1)
+  player1 = Player.new("RED",1)
+  player2 = Player.new("BLUE",2)
 
   @listOfP = [player1,player2]
 
@@ -240,7 +240,11 @@ def calcDamage(attacker, attacked)
     p("couldnt attack!")
     return 0
   end
-  return (attackPower - @field.getSpace(attacked.getCord).defence*((attackPower*(0.1)) - (attackPower * 0.01 * (10 - attacked.health))))
+  if(!attacked.isFlying)
+    return (attackPower - @field.getSpace(attacked.getCord).defence*((attackPower*(0.1)) - (attackPower * 0.01 * (10 - attacked.health))))
+  else
+    return (attackPower - ((attackPower*(0.1)) - (attackPower * 0.01 * (10 - attacked.health))))
+  end
 end
 
 def explosion(x,y)
@@ -770,7 +774,6 @@ def move(warMachine, spaces) #animation, setting/unsetting spaces
       if(x == nil)
         p("HEY! IT'S ABOUT TO FAIL!  x is nil!. dumping info:")
         p("unit: " + warMachine.class.to_s + " cord: " + warMachine.getCord.to_s + ", spaces" )
-        p("just for grins, [4, 12]: " + @field.getSpace([4, 12]).occoupiedWM.to_s  )
         for space in spaceArrDup
           p(space.getCord.to_s)
         end
@@ -1065,17 +1068,19 @@ def attackUnit(unit, currentPlayer, listOfPlayers)
 
       if(targetSpace != nil) ##GOTTA CHANGE THIS TO DO SOMETHING ELSE
         p("going to move. target space: " + targetSpace.getCord.to_s + " with target: " + target.class.to_s)
-        attackPath =  genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,[targetSpace],unit, false, unit.fuel),[]).reverse
-        #        for space in attackPath
-        #          space.toggleIsCursor
-        #          p("This is the path it chose")
-        #          gets
-        #          @sprites.concat([space])
-        #        end
-        move(unit, attackPath)
-        #        for space in attackPath
-        #          @sprites.delete([space])
-        #        end
+        if(@field.getSpace(unit.getCord) != targetSpace)
+          attackPath =  genPathFromNodes(optimizeMovePath(@field.getSpace(unit.getCord),unit.movement,[targetSpace],unit, false, unit.fuel),[]).reverse
+          #        for space in attackPath
+          #          space.toggleIsCursor
+          #          p("This is the path it chose")
+          #          gets
+          #          @sprites.concat([space])
+          #        end
+          move(unit, attackPath)
+          #        for space in attackPath
+          #          @sprites.delete([space])
+          #        end
+        end
         attack(unit, target, currentPlayer)
       else
         p("HEY! THAT WIERD ERROR OCCURED.")
@@ -1537,7 +1542,7 @@ def findInf(unit, currentPlayer)
       space = @field.getSpace(aUnit.getCord)
       infSpaces << space
       infSpaces.concat(getNeighboringSpaces(space))
-      infSpaces.delete_if{|x| x== nil || x.occoupiedWM != nil}
+      infSpaces.delete_if{|x| x== nil || x.occoupiedWM != nil || x.terrain.class == Sea}
       p("num neighbors:"+ getNeighboringSpaces(space).size.to_s)
     end
   end
@@ -1723,7 +1728,15 @@ def choseUnitToMandate(currentPlayer, listOfPlayers)
           #          if(hasBase(currentPlayer, "s"))
           #            possibleUnits << [Battleship]
           #          end
+          possibleUnits.delete_if()
+          print ("The possible units are: ")
+          for unit in possibleUnits
+            print(unit.at(1).to_s + ", ")
+          end
+          p("")
+          p("the chosen unit is " + possibleUnits.at(possibleUnits.length).to_s)
           normalUnit = possibleUnits.at(possibleUnits.length)
+          gets
         end
 
       end
@@ -2711,6 +2724,20 @@ def main()
             p("not enough funds, wait till next turn")
             building = false
           end
+          availableCityTypes = []
+          for space in currentPlayer.citySpaces
+            availableCityTypes << space.terrain.typeNumber
+          end
+          availableCityTypes.uniq!()
+          for unit in currentPlayer.mandatedUnits
+            if(unit != nil &&!availableCityTypes.include?(unit.at(1)))
+              p("available City types " + availableCityTypes + " doesnt include " + unit.at(1).to_s)
+              p("deleting mandated unit "+ unit.at(0).to_s)
+              removeMandatedUnit(unit)
+              gets
+            end
+          end
+
         end
       end
     end
